@@ -1,0 +1,19 @@
+{
+  "name": "NodePoker",
+  "version": "0.0.1",
+  "description": "Classic poker game with node.js server and html client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hhaverinen/NodePoker.git"
+  },
+  "author": "Henri Haverinen",
+  "license": "MIT",
+  "homepage": "https://github.com/hhaverinen/NodePoker#readme",
+  "dependencies": {
+    "express": "^4.15.5"
+  }
+}
