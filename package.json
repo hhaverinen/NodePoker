@@ -4,7 +4,9 @@
   "description": "Classic poker game with node.js server and html client",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "less": "lessc client/styles.less client/styles.css",
+    "browserify": "browserify client/main.js -o client/bundle.js"
   },
   "repository": {
     "type": "git",
@@ -15,6 +17,11 @@
   "homepage": "https://github.com/hhaverinen/NodePoker#readme",
   "dependencies": {
     "express": "^4.15.5",
+    "jquery": "^3.2.1",
+    "shuffle-array": "^1.0.1",
     "socket.io": "^2.0.3"
+  },
+  "devDependencies": {
+    "less": "^2.7.2"
   }
 }
