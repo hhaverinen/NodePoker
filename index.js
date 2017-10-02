@@ -29,12 +29,4 @@ io.on('connection', function(socket) {
 // start server
 server.listen(port, function () {
   console.log(`Example app listening on port ${port}!`);
-/*
-  var deck = new Deck()
-  deck.shuffle()
-  console.log(deck.cards[0])
-  console.log(deck.deal(5))
-  console.log(deck.cards[0])
-  console.log(JSON.stringify(deck))
-*/
 });
