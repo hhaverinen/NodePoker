@@ -12,13 +12,15 @@ app.use(express.static(path.join(__dirname, 'client')));
 
 io.on('connection', function(socket) {
   console.log('user connected!');
+
   socket.on('disconnect', function() {
     console.log('user disconnected!')
   });
+
   socket.on('deal', function() {
-    var deck = new Deck();
+    let deck = new Deck();
     deck.shuffle();
-    var hand = deck.deal(5);
+    let hand = deck.deal(5);
     console.log(hand);
     io.emit('deal', hand);
   });
@@ -26,7 +28,7 @@ io.on('connection', function(socket) {
 
 // start server
 server.listen(port, function () {
-  console.log('Example app listening on port ' + port + '!');
+  console.log(`Example app listening on port ${port}!`);
 /*
   var deck = new Deck()
   deck.shuffle()

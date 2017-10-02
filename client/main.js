@@ -1,7 +1,11 @@
 const io = require('socket.io-client');
 const $ = require('jquery');
+const React = require('react');
+const ReactDOM = require('react-dom');
 
-var socket = io();
+const Card = require('./components/Card.js');
+
+const socket = io();
 
 $('#deal').on('click', function() {
   socket.emit('deal');
@@ -13,3 +17,5 @@ socket.on('deal', function(hand) {
     $('#hand-placeholder').append($('<li>').text(value.suit + ':' + value.rank));
   });
 });
+
+ReactDOM.render(<Card name="Henri"/>, document.getElementById('test'));

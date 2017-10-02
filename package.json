@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "less": "lessc client/styles.less client/styles.css",
-    "browserify": "browserify client/main.js -o client/bundle.js"
+    "less": "lessc client/styles.less client/styles.css --verbose",
+    "less:onchange": "onchange 'client/styles.less' -- npm run less",
+    "browserify": "browserify -t [ babelify --presets [ react ] ] client/main.js -o client/bundle.js",
+    "watchify": "watchify -v -t [ babelify --presets [ react ] ] client/main.js -o client/bundle.js",
+    "watch:all": "parallelshell 'npm run less:onchange' 'npm run watchify'"
   },
   "repository": {
     "type": "git",
@@ -18,10 +21,18 @@
   "dependencies": {
     "express": "^4.15.5",
     "jquery": "^3.2.1",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
     "shuffle-array": "^1.0.1",
     "socket.io": "^2.0.3"
   },
   "devDependencies": {
-    "less": "^2.7.2"
+    "babel-preset-react": "^6.24.1",
+    "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
+    "less": "^2.7.2",
+    "onchange": "^3.2.1",
+    "parallelshell": "^3.0.1",
+    "watchify": "^3.9.0"
   }
 }
