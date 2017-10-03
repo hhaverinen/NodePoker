@@ -1,4 +1,7 @@
-li.card {
+.card {
   display: inline-block;
   padding: 5px;
+}
+.card.selected > img {
+  padding-bottom: 10px;
 }

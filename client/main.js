@@ -11,6 +11,14 @@ $('#deal').on('click', function() {
   socket.emit('deal');
 });
 
+$('#change').on('click', function() {
+  let cards = [];
+  $('.selected').each(function(i) {
+    cards.push($(this).data('json'));
+  });
+  socket.emit('change', cards);
+});
+
 socket.on('deal', function(hand) {
   ReactDOM.render(<Hand cards={hand} />, document.getElementById('hand-placeholder'));
 });
