@@ -21,6 +21,10 @@ Deck.prototype = {
 
   deal: function(amount) {
     return this.cards.splice(0, amount);
+  },
+
+  dealOne: function() {
+    return this.cards.shift();
   }
 
 }

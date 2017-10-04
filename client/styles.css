@@ -1,7 +1,28 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+header {
+  background-color: #222;
+  color: white;
+  text-align: center;
+}
+header h1 {
+  margin: 0;
+  padding: 20px 0;
+}
+.hand-area {
+  text-align: center;
+}
+.hand {
+  padding-top: 15px;
+}
 .card {
   display: inline-block;
+  position: relative;
   padding: 5px;
 }
-.card.selected > img {
-  padding-bottom: 10px;
+.card.selected {
+  bottom: 10px;
 }

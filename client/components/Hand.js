@@ -9,7 +9,7 @@ class Hand extends React.Component {
         <Card suit={card.suit} rank={card.rank} key={`${card.suit}${card.rank}`} />
       );
     });
-    return <div>{cards}</div>;
+    return <div className="hand">{cards}</div>;
   }
 }
 
