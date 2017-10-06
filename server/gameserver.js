@@ -19,9 +19,8 @@ const listen = function(server) {
       deck = new Deck();
       deck.shuffle();
       let hand = deck.deal(5);
-      socket.emit('deal', hand);
       players[socket.id] = hand;
-      console.log(players);
+      socket.emit('deal', hand);
     });
 
     socket.on('change', function(cards) {
@@ -37,7 +36,6 @@ const listen = function(server) {
         }
       }
 
-      console.log(hand);
       socket.emit('deal', hand); // TODO: own event for changing only changed cards?
     });
 

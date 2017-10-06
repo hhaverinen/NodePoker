@@ -37,11 +37,16 @@ class Card extends React.Component {
   render() {
     const json = { suit: this.props.suit, rank: this.props.rank };
     // TODO: more elegant way to determine correct image (+ jokers doesn't work currently)
-    const imgName = this.props.suit.toLowerCase() + (this.props.rank >= 10 ? this.props.rank : "0" + this.props.rank) + ".bmp";
+    const imgName = this.props.suit + (this.props.rank >= 10 ? this.props.rank : '0' + this.props.rank) + '.bmp';
     return React.createElement(
       'div',
-      { className: 'card ' + this.isSelected(), onClick: this.click, 'data-json': JSON.stringify(json) },
-      React.createElement('img', { src: `./assets/images/cards/${imgName}` })
+      { className: "card " + this.isSelected(), onClick: this.click, 'data-json': JSON.stringify(json) },
+      React.createElement(
+        'div',
+        { className: 'card-image' },
+        React.createElement('img', { className: 'front', src: `./assets/images/cards/${imgName}` }),
+        React.createElement('img', { className: 'back', src: './assets/images/cards/b1fv.bmp' })
+      )
     );
   }
 }
@@ -88,10 +93,16 @@ class HandArea extends React.Component {
 
   change() {
     let cards = [];
-    $('.selected').each(function (i) {
-      cards.push($(this).data('json'));
+    let elements = $('.card.selected');
+    // add binding to last element: when transition is completed, emit the 'change' event to server
+    elements.last().one("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function () {
+      socket.emit('change', cards);
     });
-    socket.emit('change', cards);
+
+    elements.each(function (i) {
+      cards.push($(this).data('json'));
+      $(this).children('.card-image').addClass('flipped');
+    });
   }
 
   render() {
@@ -102,12 +113,12 @@ class HandArea extends React.Component {
       React.createElement(
         'button',
         { onClick: this.deal, type: 'button' },
-        'Jaa kortteja!'
+        'Uusi peli!'
       ),
       React.createElement(
         'button',
         { onClick: this.change, type: 'button' },
-        'Vaihda kortteja!'
+        'Vaihda valitut kortit!'
       )
     );
   }

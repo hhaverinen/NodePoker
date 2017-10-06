@@ -17,17 +17,23 @@ class HandArea extends React.Component {
 
   change() {
     let cards = [];
-    $('.selected').each(function(i) {
-      cards.push($(this).data('json'));
+    let elements = $('.card.selected');
+    // add binding to last element: when transition is completed, emit the 'change' event to server
+    elements.last().one("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", function() {
+        socket.emit('change', cards);
     });
-    socket.emit('change', cards);
+
+    elements.each(function(i) {
+      cards.push($(this).data('json'));
+      $(this).children('.card-image').addClass('flipped');
+    });
   }
 
   render() {
     return <div className="hand-area">
             <div id="hand-placeholder"></div>
-            <button onClick={this.deal} type="button">Jaa kortteja!</button>
-            <button onClick={this.change} type="button">Vaihda kortteja!</button>
+            <button onClick={this.deal} type="button">Uusi peli!</button>
+            <button onClick={this.change} type="button">Vaihda valitut kortit!</button>
            </div>;
   }
 }
