@@ -3,7 +3,7 @@ const shuffle = require('shuffle-array');
 function Deck() {
   this.cards = [];
 
-  const suits = ['H', 'C', 'S', 'D'];
+  const suits = ['h', 'c', 's', 'd'];
   for (i = 0; i < 4; i++) {
     let suit = suits[i];
     for (j = 1; j < 14; j++) {
