@@ -67,8 +67,6 @@ const getCardCounts = function(hand) {
 const ranker = {
 
   getBestHand: function(hand) {
-    //handcopy = hand.splice(0).sort((a,b) => a.rank - b.rank);
-    console.log(hand);
     switch(true) {
       case isFiveOfAKind(hand): // TODO: there is no joker support yet
         return {

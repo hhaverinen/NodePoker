@@ -2,6 +2,7 @@ const React = require('react');
 const $ = require('jquery');
 const ReactDOM = require('react-dom');
 const Hand = require('./Hand.js');
+const Result = require('./Result.js')
 const socket = require('socket.io-client')();
 
 class HandArea extends React.Component {
@@ -13,6 +14,7 @@ class HandArea extends React.Component {
 
   deal() {
     socket.emit('deal');
+    ReactDOM.render(<Result />, document.getElementById('result'));
   }
 
   change() {
@@ -31,6 +33,7 @@ class HandArea extends React.Component {
 
   render() {
     return <div className="hand-area">
+            <div id="result"></div>
             <div id="hand-placeholder"></div>
             <button onClick={this.deal} type="button">Uusi peli!</button>
             <button onClick={this.change} type="button">Vaihda valitut kortit!</button>
@@ -41,5 +44,9 @@ class HandArea extends React.Component {
 socket.on('deal', function(hand) {
   ReactDOM.render(<Hand cards={hand} />, document.getElementById('hand-placeholder'));
 });
+
+socket.on('result', function(result) {
+  ReactDOM.render(<Result result={result} />, document.getElementById('result'));
+})
 
 module.exports = HandArea;

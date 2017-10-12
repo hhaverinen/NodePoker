@@ -1,5 +1,6 @@
 const io = require('socket.io')();
 const Deck = require('./deck.js');
+const handranker = require('./hand-ranker.js');
 
 const players = {};
 
@@ -36,7 +37,10 @@ const listen = function(server) {
         }
       }
 
+      const result = handranker.getBestHand(hand);
+
       socket.emit('deal', hand); // TODO: own event for changing only changed cards?
+      socket.emit('result', result);
     });
 
   });
