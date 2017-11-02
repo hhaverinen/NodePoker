@@ -15,6 +15,9 @@ header h1 {
 .hand-area {
   text-align: center;
 }
+.hand-area button {
+  margin: 0 5px;
+}
 .hand {
   padding-top: 15px;
 }
@@ -49,4 +52,11 @@ header h1 {
 }
 .card .card-image.flipped {
   transform: rotateY(180deg);
+}
+.result-table > .result-row {
+  padding: 3px;
+}
+.result-table > .result-row.winninghand {
+  color: red;
+  font-weight: bold;
 }

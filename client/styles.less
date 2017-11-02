@@ -17,6 +17,10 @@ header {
 
 .hand-area {
   text-align: center;
+
+  button {
+    margin: 0 5px;
+  }
 }
 
 .hand {
@@ -58,6 +62,17 @@ header {
 
     &.flipped {
       transform: rotateY(180deg);
+    }
+  }
+}
+
+.result-table {
+  > .result-row {
+    padding: 3px;
+
+    &.winninghand {
+      color: red;
+      font-weight: bold;
     }
   }
 }
