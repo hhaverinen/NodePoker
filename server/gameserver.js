@@ -16,6 +16,11 @@ const listen = function(server) {
       delete players[socket.id];
     });
 
+    socket.on('register', (name) => {
+      players[socket.id]['name'] = name;
+      socket.emit('registered', name);
+    });
+
     socket.on('deal', function() {
       deck = new Deck();
       deck.shuffle();

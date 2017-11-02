@@ -76,3 +76,35 @@ header {
     }
   }
 }
+
+.popup-overlay {
+  position: fixed;
+  top: 77px; // TODO: more robust way to determine height of header
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  transition: opacity 500ms;
+
+  .name-form {
+    width: 300px;
+    margin: 100px auto;
+    text-align: center;
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    position: relative;
+    transition: all 5s ease-in-out;
+
+    > input {
+      display: block;
+      margin: 5px auto;
+      width: 200px;
+
+      &[type=text] {
+        margin-top: 15px;
+        text-align: center;
+      }
+    }
+  }
+}
