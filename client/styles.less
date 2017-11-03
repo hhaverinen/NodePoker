@@ -1,4 +1,6 @@
 @header-height: 77px;
+@gray-background-color: #222;
+@blue-highlight-color: rgb(100, 193, 229);
 
 body {
   margin: 0;
@@ -7,7 +9,7 @@ body {
 }
 
 header {
-  background-color: #222;
+  background-color: @gray-background-color;
   color: white;
   text-align: center;
   height: @header-height;
@@ -26,14 +28,94 @@ header {
     font-weight: bold;
   }
 
-  .chat-button, .menu-button {
+  .chat-button-wrapper, .menu-button-wrapper {
     width: 10%;
 
-    > span {
-      padding: 5px;
+    .menu-button, .chat-button {
+      cursor: pointer;
 
-      &:hover {
-        cursor: pointer;
+      &:hover > div {
+        background-color: @blue-highlight-color;
+
+        &:after {
+          border-color: transparent transparent transparent @blue-highlight-color;
+        }
+      }
+    }
+
+    .menu-button {
+      // TODO: not best way to center with absolute margins.
+      margin-top: 20px;
+      margin-left: 20px;
+      width: 40px;
+
+      > div {
+        width: 40px;
+        height: 5px;
+        margin: 6px 0px;
+        transition: 0.5s;
+        background-color: white;
+      }
+
+      &.menu-open > div {
+        &.bar1 {
+          transform: rotate(-45deg) translate(-9px, 6px);
+        }
+
+        &.bar2 {
+          opacity: 0;
+        }
+
+        &.bar3 {
+          transform: rotate(45deg) translate(-9px, -7px);
+        }
+      }
+    }
+
+    .chat-button {
+      margin-top: 20px;
+      margin-left: 60px;
+      width: 35px;
+
+      > .chat-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 4px;
+        background-color: white;
+        transition: 0.5s;
+        border-color: white;
+
+        &:after {
+          content: "";
+          position: absolute;
+          width: 0;
+          height: 0;
+          border-style: solid;
+          border-width: 0px 0px 10px 8px;
+          border-color: transparent transparent transparent white;
+          transition: 0.5s;
+        }
+
+        > div {
+          height: 5px;
+
+          &:nth-child(even) {
+            background-color: @gray-background-color;
+            margin-left: 5px;
+          }
+
+          &:nth-child(2), &:nth-child(4) {
+            width: 25px;
+          }
+
+          &:nth-child(6) {
+            width: 15px;
+          }
+        }
+      }
+
+      &.chat-open > .chat-icon {
+        transform: rotate(45deg);
       }
     }
   }
@@ -133,21 +215,59 @@ header {
   }
 }
 
+.menu-area {
+  position: fixed;
+  left: 0;
+  top: @header-height;
+  bottom: 0;
+  width: 20%;
+  background-color: @gray-background-color;
+  border-right: 2px solid @gray-background-color;
+
+  &.menu-open {
+    transition: 1s;
+  }
+
+  &.menu-closed {
+    left: -20%;
+    transition: 1s;
+  }
+
+  > .menu-row {
+    background-color: @gray-background-color;
+    color: white;
+    padding: 5px 2px;
+    border-top: 1px solid white;
+
+    &:last-child {
+      border-bottom: 1px solid white;
+    }
+
+    &:hover {
+      cursor: pointer;
+      background-color: @blue-highlight-color;
+      color: black;
+    }
+  }
+}
+
 .chat-area {
+  @left-border-width: 2px;
   position: fixed;
   right: 0;
   top: @header-height;
   bottom: 0;
   width: 20%;
-  border-left: 2px solid #222;
+  border-left: @left-border-width solid @gray-background-color;
+  border-top: 1px solid white;
+  background-color: @gray-background-color;
 
   &.chat-open {
     transition: 1s;
   }
 
   &.chat-closed {
-    width: 0;
-    right: -2px; // border width
+    right: calc(~'-20% - @{left-border-width}');
     transition: 1s;
   }
 
@@ -156,12 +276,15 @@ header {
     height: 95%;
 
     > .message-row {
+      color: white;
+
       > span.sender {
         font-weight: bold;
       }
 
       &:nth-child(even) {
-        background-color: rgb(100, 193, 229, 0.5);
+        background-color: @blue-highlight-color;
+        color: black;
       }
     }
   }
