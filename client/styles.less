@@ -1,3 +1,5 @@
+@header-height: 77px;
+
 body {
   margin: 0;
   padding: 0;
@@ -8,10 +10,32 @@ header {
   background-color: #222;
   color: white;
   text-align: center;
+  height: @header-height;
+  line-height: @header-height;
 
-  h1 {
-    margin: 0;
-    padding: 20px 0;
+  > div {
+    display: inline-block;
+    height: 100%;
+    vertical-align: top;
+  }
+
+  .title {
+    display: inline-block;
+    width: 80%;
+    font-size: 2em;
+    font-weight: bold;
+  }
+
+  .chat-button, .menu-button {
+    width: 10%;
+
+    > span {
+      padding: 5px;
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
   }
 }
 
@@ -79,7 +103,7 @@ header {
 
 .popup-overlay {
   position: fixed;
-  top: 77px; // TODO: more robust way to determine height of header
+  top: @header-height;
   left: 0;
   bottom: 0;
   right: 0;
@@ -112,10 +136,20 @@ header {
 .chat-area {
   position: fixed;
   right: 0;
-  top: 77px; // TODO: fix this
+  top: @header-height;
   bottom: 0;
   width: 20%;
   border-left: 2px solid #222;
+
+  &.chat-open {
+    transition: 1s;
+  }
+
+  &.chat-closed {
+    width: 0;
+    right: -2px; // border width
+    transition: 1s;
+  }
 
   > .message-area {
     position: relative;

@@ -7,10 +7,31 @@ header {
   background-color: #222;
   color: white;
   text-align: center;
+  height: 77px;
+  line-height: 77px;
 }
-header h1 {
-  margin: 0;
-  padding: 20px 0;
+header > div {
+  display: inline-block;
+  height: 100%;
+  vertical-align: top;
+}
+header .title {
+  display: inline-block;
+  width: 80%;
+  font-size: 2em;
+  font-weight: bold;
+}
+header .chat-button,
+header .menu-button {
+  width: 10%;
+}
+header .chat-button > span,
+header .menu-button > span {
+  padding: 5px;
+}
+header .chat-button > span:hover,
+header .menu-button > span:hover {
+  cursor: pointer;
 }
 .hand-area {
   text-align: center;
@@ -95,6 +116,14 @@ header h1 {
   bottom: 0;
   width: 20%;
   border-left: 2px solid #222;
+}
+.chat-area.chat-open {
+  transition: 1s;
+}
+.chat-area.chat-closed {
+  width: 0;
+  right: -2px;
+  transition: 1s;
 }
 .chat-area > .message-area {
   position: relative;

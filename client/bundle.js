@@ -10,7 +10,8 @@ const chatSocket = require('socket.io-client').connect('/chat');
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { registered: false, name: name };
+    this.handleChatClick = this.handleChatClick.bind(this);
+    this.state = { registered: false, name: name, chatOpen: true };
   }
 
   componentDidMount() {
@@ -19,18 +20,21 @@ class App extends React.Component {
     });
   }
 
+  handleChatClick() {
+    this.setState({ chatOpen: !this.state.chatOpen });
+  }
+
   render() {
     return React.createElement(
       'div',
       null,
-      React.createElement(Header, null),
+      React.createElement(Header, { handleChatClick: this.handleChatClick }),
       this.state.registered ? React.createElement(
         'div',
         null,
         React.createElement(HandArea, { socket: gameSocket }),
         ' ',
-        React.createElement(ChatArea, { socket: chatSocket, name: this.state.name }),
-        ' '
+        React.createElement(ChatArea, { socket: chatSocket, name: this.state.name, chatOpen: this.state.chatOpen })
       ) : React.createElement(RegisterPopup, { socket: gameSocket }),
       ' '
     );
@@ -68,10 +72,14 @@ class ChatArea extends React.Component {
     this.setState({ messages: this.state.messages.concat([message]) });
   }
 
+  isOpen() {
+    return this.props.chatOpen ? 'chat-open' : 'chat-closed';
+  }
+
   render() {
     return React.createElement(
       'div',
-      { className: 'chat-area' },
+      { className: `chat-area ${this.isOpen()}` },
       React.createElement(MessageArea, { messages: this.state.messages }),
       React.createElement(MessageBox, { onMessageSubmit: this.onMessageSubmit })
     );
@@ -347,6 +355,7 @@ module.exports = ResultTable;
 
 },{"./ResultRow.js":9,"react":77}],11:[function(require,module,exports){
 const React = require('react');
+const $ = require('jquery');
 
 class Header extends React.Component {
   render() {
@@ -354,9 +363,27 @@ class Header extends React.Component {
       'header',
       null,
       React.createElement(
-        'h1',
-        null,
+        'div',
+        { className: 'menu-button' },
+        React.createElement(
+          'span',
+          null,
+          'Show/hide menu'
+        )
+      ),
+      React.createElement(
+        'div',
+        { className: 'title' },
         'NodePoker'
+      ),
+      React.createElement(
+        'div',
+        { className: 'chat-button' },
+        React.createElement(
+          'span',
+          { onClick: this.props.handleChatClick },
+          'Show/Hide chat'
+        )
       )
     );
   }
@@ -364,7 +391,7 @@ class Header extends React.Component {
 
 module.exports = Header;
 
-},{"react":77}],12:[function(require,module,exports){
+},{"jquery":60,"react":77}],12:[function(require,module,exports){
 const React = require('react');
 
 class RegisterPopup extends React.Component {

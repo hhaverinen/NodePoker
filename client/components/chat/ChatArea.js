@@ -26,8 +26,12 @@ class ChatArea extends React.Component {
     this.setState({ messages: this.state.messages.concat([message])});
   }
 
+  isOpen() {
+    return (this.props.chatOpen) ? 'chat-open' : 'chat-closed';
+  }
+
   render() {
-    return <div className="chat-area">
+    return <div className={`chat-area ${this.isOpen()}`} >
             <MessageArea messages={this.state.messages} />
             <MessageBox onMessageSubmit={this.onMessageSubmit}/>
            </div>;
