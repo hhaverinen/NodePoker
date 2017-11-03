@@ -12,8 +12,8 @@ class MenuArea extends React.Component {
 
   render() {
     return <div className={`menu-area ${this.isOpen()}`}>
-            <MenuRow name="Solo poker" handleClick={null} />
-            <MenuRow name="Multiplayer poker" handleClick={null} />
+            <MenuRow name="Solo poker" value={1} handleClick={this.props.handleMenuItemClick} />
+            <MenuRow name="Multiplayer poker" value={2} handleClick={this.props.handleMenuItemClick} />
            </div>;
   }
 }

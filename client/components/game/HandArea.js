@@ -1,5 +1,5 @@
 const React = require('react');
-const $ = require('jquery');
+const $ = require('jquery'); // TODO: hankkiudu jquerysa eroon
 const ReactDOM = require('react-dom');
 const Hand = require('./Hand.js');
 const ResultTable = require('./ResultTable.js')
@@ -14,6 +14,7 @@ class HandArea extends React.Component {
 
   componentDidMount() {
     this.props.socket.on('deal', (hand) => {
+      // TODO: fix this by removing ReactDOM.render
       ReactDOM.render(<Hand cards={hand} />, document.getElementById('hand-placeholder'));
     });
   }
@@ -24,6 +25,8 @@ class HandArea extends React.Component {
   }
 
   change() {
+    // Issue where selected card may stay selected after new deal will fix itself
+    // when removing jquery and replacing with correct react logic
     let cards = [];
     let elements = $('.card.selected');
 
@@ -47,7 +50,6 @@ class HandArea extends React.Component {
 
   render() {
     return <div className="hand-area">
-            <div id="result-area"><ResultTable socket={this.props.socket}/></div>
             <div id="hand-placeholder"></div>
             <button onClick={this.deal} type="button" disabled={this.state.dealDisabled}>New game!</button>
             <button onClick={this.change} type="button" disabled={this.state.changeDisabled}>Change cards!</button>

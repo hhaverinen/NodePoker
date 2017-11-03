@@ -159,6 +159,9 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 .card .card-image.flipped {
   transform: rotateY(180deg);
 }
+.result-table {
+  text-align: center;
+}
 .result-table > .result-row {
   padding: 3px;
 }
