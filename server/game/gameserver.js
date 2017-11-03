@@ -1,18 +1,17 @@
-const io = require('socket.io')();
 const Deck = require('./deck.js');
 const handranker = require('./hand-ranker.js');
 
 const players = {};
 
-const listen = function(server) {
+const init = function(io) {
 
-  io.on('connection', function(socket) {
-    console.log('user connected!');
+  io.of('/game').on('connection', (socket) => {
+    console.log('user connected to game!');
     players[socket.id] = {};
     let deck;
 
-    socket.on('disconnect', function() {
-      console.log('user disconnected!')
+    socket.on('disconnect', () => {
+      console.log('user disconnected from game!')
       delete players[socket.id];
     });
 
@@ -21,7 +20,7 @@ const listen = function(server) {
       socket.emit('registered', name);
     });
 
-    socket.on('deal', function() {
+    socket.on('deal', () => {
       deck = new Deck();
       deck.shuffle();
       let hand = deck.deal(5);
@@ -29,7 +28,7 @@ const listen = function(server) {
       socket.emit('deal', hand);
     });
 
-    socket.on('change', function(cards) {
+    socket.on('change', (cards) => {
       let hand = players[socket.id];
 
       for (let i = 0; i < cards.length; i++) {
@@ -49,8 +48,6 @@ const listen = function(server) {
     });
 
   });
-
-  return io.listen(server);
 }
 
-module.exports.listen = listen;
+module.exports.init = init;

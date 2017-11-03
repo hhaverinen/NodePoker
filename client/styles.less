@@ -108,3 +108,52 @@ header {
     }
   }
 }
+
+.chat-area {
+  position: fixed;
+  right: 0;
+  top: 77px; // TODO: fix this
+  bottom: 0;
+  width: 20%;
+  border-left: 2px solid #222;
+
+  > .message-area {
+    position: relative;
+    height: 95%;
+
+    > .message-row {
+      > span.sender {
+        font-weight: bold;
+      }
+
+      &:nth-child(even) {
+        background-color: rgb(100, 193, 229, 0.5);
+      }
+    }
+  }
+
+  > .messagebox {
+    position: relative;
+    height: 5%;
+    border-top: 1px solid gray;
+
+    > input[type=text] {
+      @rightborder: 1px;
+      width: calc(~'80% - @{rightborder}');
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      border: 0;
+      border-right: @rightborder solid gray;
+    }
+
+    > input[type=submit] {
+      width: 20%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      border: 0;
+    }
+
+  }
+}

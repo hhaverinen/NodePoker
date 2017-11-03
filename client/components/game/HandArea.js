@@ -49,8 +49,8 @@ class HandArea extends React.Component {
     return <div className="hand-area">
             <div id="result-area"><ResultTable socket={this.props.socket}/></div>
             <div id="hand-placeholder"></div>
-            <button onClick={this.deal} type="button" disabled={this.state.dealDisabled}>Uusi peli!</button>
-            <button onClick={this.change} type="button" disabled={this.state.changeDisabled}>Vaihda valitut kortit!</button>
+            <button onClick={this.deal} type="button" disabled={this.state.dealDisabled}>New game!</button>
+            <button onClick={this.change} type="button" disabled={this.state.changeDisabled}>Change cards!</button>
            </div>;
   }
 }
