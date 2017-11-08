@@ -1,6 +1,7 @@
 const React = require('react');
 const ResultTable = require('./ResultTable.js');
 const HandArea = require('./HandArea.js');
+const socket = require('socket.io-client');
 
 class SoloPoker extends React.Component {
   constructor(props) {
@@ -8,20 +9,28 @@ class SoloPoker extends React.Component {
     this.state = {winninghand: -1};
   }
 
+  componentWillMount() {
+    this.socket = socket.connect('/game');
+  }
+
   componentDidMount() {
-    this.props.socket.on('deal', (hand) => {
+    this.socket.on('deal', (hand) => {
       this.setState({winninghand: -1});
     });
 
-    this.props.socket.on('result', (result) => {
+    this.socket.on('result', (result) => {
       this.setState({winninghand: result.value});
     });
   }
 
+  componentWillUnmount() {
+    this.socket.disconnect();
+  }
+
   render() {
-    return <div className="solopoker-area">
+    return <div className="solo-poker-area">
             <ResultTable winninghand={this.state.winninghand} />
-            <HandArea socket={this.props.socket} />
+            <HandArea socket={this.socket} />
            </div>;
   }
 }

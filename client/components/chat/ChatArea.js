@@ -10,9 +10,13 @@ class ChatArea extends React.Component {
   }
 
   componentDidMount() {
-    this.props.socket.on('message', (message) => {
+    this.props.socket.on('message', this.onMessage = (message) => {
       this.changeMessageState(message);
     });
+  }
+
+  componentWillUnmount() {
+    this.props.socket.removeListener('message', this.onMessage);
   }
 
   onMessageSubmit(message) {

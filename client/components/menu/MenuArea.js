@@ -2,10 +2,6 @@ const React = require('react');
 const MenuRow = require('./MenuRow.js');
 
 class MenuArea extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   isOpen() {
     return (this.props.menuOpen) ? 'menu-open' : 'menu-closed';
   }
