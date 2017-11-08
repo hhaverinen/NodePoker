@@ -1,29 +1,31 @@
 const shuffle = require('shuffle-array');
 
-function Deck() {
-  this.cards = [];
+class Deck {
+  constructor(shuffle=false) {
+    this.cards = [];
 
-  const suits = ['h', 'c', 's', 'd'];
-  for (i = 0; i < suits.length; i++) {
-    let suit = suits[i];
-    for (j = 1; j < 14; j++) {
-      this.cards.push( { suit: suit, rank: j } );
+    const suits = ['h', 'c', 's', 'd'];
+    for (let i = 0; i < suits.length; i++) {
+      let suit = suits[i];
+      for (let j = 1; j < 14; j++) {
+        this.cards.push( { suit: suit, rank: j } );
+      }
+    }
+
+    if(shuffle) {
+      this.shuffle();
     }
   }
 
-}
+  shuffle() {
+    shuffle(this.cards);
+  }
 
-Deck.prototype = {
-
-  shuffle: function() {
-    shuffle(this.cards)
-  },
-
-  deal: function(amount) {
+  deal(amount) {
     return this.cards.splice(0, amount);
-  },
+  }
 
-  dealOne: function() {
+  dealOne() {
     return this.cards.shift();
   }
 

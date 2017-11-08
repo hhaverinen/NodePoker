@@ -6,7 +6,6 @@ const ChatArea = require('./components/chat/ChatArea.js');
 const MenuArea = require('./components/menu/MenuArea.js');
 const SoloPoker = require('./components/game/SoloPoker.js');
 const MultiplayerPoker = require('./components/game/MultiplayerPoker.js');
-const chatSocket = require('socket.io-client').connect('/chat');
 
 class App extends React.Component {
   constructor(props) {
@@ -14,10 +13,11 @@ class App extends React.Component {
     this.handleChatClick = this.handleChatClick.bind(this);
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.handleMenuItemClick = this.handleMenuItemClick.bind(this);
-    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 1 };
+    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 2 };
   }
 
   componentDidMount() {
+    // TODO: own socket for registering maybe?
     /*gameSocket.on('registered', (name) => {
       this.setState({registered: true, name: name});
     });*/
@@ -56,7 +56,7 @@ class App extends React.Component {
         null,
         React.createElement(MenuArea, { menuOpen: this.state.menuOpen, handleMenuItemClick: this.handleMenuItemClick }),
         game,
-        React.createElement(ChatArea, { socket: chatSocket, name: this.state.name, chatOpen: this.state.chatOpen })
+        React.createElement(ChatArea, { name: this.state.name, chatOpen: this.state.chatOpen })
       ) : React.createElement(RegisterPopup, null)
     );
   }
@@ -64,10 +64,11 @@ class App extends React.Component {
 
 module.exports = App;
 
-},{"./components/chat/ChatArea.js":2,"./components/game/MultiplayerPoker.js":9,"./components/game/SoloPoker.js":13,"./components/general/Header.js":14,"./components/general/RegisterPopup.js":15,"./components/menu/MenuArea.js":16,"react":81,"socket.io-client":82}],2:[function(require,module,exports){
+},{"./components/chat/ChatArea.js":2,"./components/game/MultiplayerPoker.js":8,"./components/game/SoloPoker.js":12,"./components/general/Header.js":13,"./components/general/RegisterPopup.js":14,"./components/menu/MenuArea.js":15,"react":80}],2:[function(require,module,exports){
 const React = require('react');
 const MessageArea = require('./MessageArea.js');
 const MessageBox = require('./MessageBox.js');
+const socket = require('socket.io-client');
 
 class ChatArea extends React.Component {
   constructor(props) {
@@ -76,20 +77,24 @@ class ChatArea extends React.Component {
     this.state = { messages: [] };
   }
 
+  componentWillMount() {
+    this.socket = socket.connect('/chat');
+  }
+
   componentDidMount() {
-    this.props.socket.on('message', this.onMessage = message => {
+    this.socket.on('message', message => {
       this.changeMessageState(message);
     });
   }
 
   componentWillUnmount() {
-    this.props.socket.removeListener('message', this.onMessage);
+    this.socket.disconnect();
   }
 
   onMessageSubmit(message) {
     let data = { name: this.props.name, message: message };
     this.changeMessageState(data);
-    this.props.socket.emit('message', data);
+    this.socket.emit('message', data);
   }
 
   changeMessageState(message) {
@@ -113,7 +118,7 @@ class ChatArea extends React.Component {
 
 module.exports = ChatArea;
 
-},{"./MessageArea.js":3,"./MessageBox.js":4,"react":81}],3:[function(require,module,exports){
+},{"./MessageArea.js":3,"./MessageBox.js":4,"react":80,"socket.io-client":81}],3:[function(require,module,exports){
 const React = require('react');
 const MessageRow = require('./MessageRow.js');
 
@@ -129,7 +134,7 @@ class MessageArea extends React.Component {
 
 module.exports = MessageArea;
 
-},{"./MessageRow.js":5,"react":81}],4:[function(require,module,exports){
+},{"./MessageRow.js":5,"react":80}],4:[function(require,module,exports){
 const React = require('react');
 
 class MessageBox extends React.Component {
@@ -164,7 +169,7 @@ class MessageBox extends React.Component {
 
 module.exports = MessageBox;
 
-},{"react":81}],5:[function(require,module,exports){
+},{"react":80}],5:[function(require,module,exports){
 const React = require('react');
 
 class MessageRow extends React.Component {
@@ -189,7 +194,7 @@ class MessageRow extends React.Component {
 
 module.exports = MessageRow;
 
-},{"react":81}],6:[function(require,module,exports){
+},{"react":80}],6:[function(require,module,exports){
 const React = require('react');
 
 class Card extends React.Component {
@@ -197,12 +202,17 @@ class Card extends React.Component {
     return this.props.card.selected ? ' selected' : '';
   }
 
+  isFlipped() {
+    return this.props.card.flipped ? ' flipped' : '';
+  }
+
   render() {
     // TODO: more elegant way to determine correct image (+ jokers doesn't work currently)
-    const imgName = this.props.card.suit + (this.props.card.rank >= 10 ? this.props.card.rank : '0' + this.props.card.rank) + '.bmp';
+    const imgName = this.props.card.rank === 0 ? 'blank.bmp' : this.props.card.suit + (this.props.card.rank >= 10 ? this.props.card.rank : '0' + this.props.card.rank) + '.bmp';
+
     return React.createElement(
       'div',
-      { className: "card " + this.isSelected(), onClick: this.props.handleCardSelect ? () => this.props.handleCardSelect(this.props.card) : null },
+      { className: `card ${this.isSelected()} ${this.isFlipped()}`, onClick: this.props.handleCardSelect ? () => this.props.handleCardSelect(this.props.card) : null },
       React.createElement(
         'div',
         { className: 'card-image' },
@@ -215,7 +225,7 @@ class Card extends React.Component {
 
 module.exports = Card;
 
-},{"react":81}],7:[function(require,module,exports){
+},{"react":80}],7:[function(require,module,exports){
 const React = require('react');
 const Card = require('./Card.js');
 
@@ -232,57 +242,67 @@ class Hand extends React.Component {
 
 module.exports = Hand;
 
-},{"./Card.js":6,"react":81}],8:[function(require,module,exports){
+},{"./Card.js":6,"react":80}],8:[function(require,module,exports){
 const React = require('react');
 const Hand = require('./Hand.js');
-const ResultTable = require('./ResultTable.js');
+const MultiplayerPokerTable = require('./MultiplayerPokerTable');
+const socket = require('socket.io-client');
 
-class HandArea extends React.Component {
+class MultiplayerPoker extends React.Component {
   constructor(props) {
     super(props);
     this.deal = this.deal.bind(this);
     this.change = this.change.bind(this);
     this.handleCardSelect = this.handleCardSelect.bind(this);
-    this.state = { changeDisabled: true, dealDisabled: false, cards: [] };
+    let mockCards = [{ suit: 'c', rank: 3 }, { suit: 'h', rank: 10 }, { suit: 'd', rank: 5 }, { suit: 'h', rank: 5 }, { suit: 'c', rank: 8 }];
+    this.state = {
+      dealDisabled: false,
+      changeDisabled: true,
+      cards: [],
+      otherPlayers: [],
+      waiting: ''
+    };
+  }
+
+  componentWillMount() {
+    this.socket = socket.connect('/multiplayer-poker-game');
   }
 
   componentDidMount() {
-    this.props.socket.on('deal', this.onDeal = hand => {
+    this.socket.on('deal', hand => {
+      this.setState({ cards: hand, changeDisabled: false, waiting: '', playerOneCards: [], playerTwoCards: [], playerThreeCards: [] });
+    });
+
+    this.socket.on('change', hand => {
       this.setState({ cards: hand });
+    });
+
+    this.socket.on('result', () => {
+      this.setState({ dealDisabled: false, waiting: '' });
+    });
+
+    this.socket.on('updateplayers', players => {
+      this.setState({ otherPlayers: players });
+    });
+
+    this.socket.on('waiting', msg => {
+      this.setState({ waiting: msg });
     });
   }
 
   componentWillUnmount() {
-    this.props.socket.removeListener('deal', this.ondeal);
+    this.socket.disconnect();
   }
 
   deal() {
-    this.props.socket.emit('deal');
-    this.setState({ changeDisabled: false, dealDisabled: true });
+    this.socket.emit('deal');
+    this.setState({ dealDisabled: true });
   }
 
   change() {
     let cards = this.state.cards.filter(card => card.selected);
-    this.props.socket.emit('change', cards);
-
-    /*
-        let elements = $('.card.selected');
-    
-        // if no cards selected, emit the 'change' event immediately
-        if (elements.length === 0) {
-          this.props.socket.emit('change', cards);
-        } else {
-          // add binding to last element: when transition is completed, emit the 'change' event to server
-          elements.last().one("transitionend webkitTransitionEnd oTransitionEnd MSTransitionEnd", () => {
-    
-          });
-    
-          elements.each(function(i) {
-            $(this).children('.card-image').addClass('flipped');
-          });
-        }
-    */
-    this.setState({ changeDisabled: true, dealDisabled: false });
+    this.socket.emit('change', cards);
+    this.setState({ changeDisabled: true });
   }
 
   handleCardSelect(card) {
@@ -295,12 +315,18 @@ class HandArea extends React.Component {
   render() {
     return React.createElement(
       'div',
-      { className: 'hand-area' },
+      { className: 'multiplayer-poker-area' },
+      React.createElement(MultiplayerPokerTable, { players: this.state.otherPlayers }),
+      React.createElement(
+        'div',
+        null,
+        this.state.waiting
+      ),
       React.createElement(Hand, { cards: this.state.cards, handleCardSelect: this.handleCardSelect }),
       React.createElement(
         'button',
         { onClick: this.deal, type: 'button', disabled: this.state.dealDisabled },
-        'New game!'
+        'Ready!'
       ),
       React.createElement(
         'button',
@@ -311,86 +337,54 @@ class HandArea extends React.Component {
   }
 }
 
-module.exports = HandArea;
-
-},{"./Hand.js":7,"./ResultTable.js":12,"react":81}],9:[function(require,module,exports){
-const React = require('react');
-const HandArea = require('./HandArea.js');
-const MultiplayerPokerTable = require('./MultiplayerPokerTable');
-const socket = require('socket.io-client');
-
-class MultiplayerPoker extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  componentWillMount() {
-    this.socket = socket.connect('/game');
-  }
-
-  componentWillUnmount() {
-    this.socket.disconnect();
-  }
-
-  render() {
-    return React.createElement(
-      'div',
-      { className: 'multiplayer-poker-area' },
-      React.createElement(MultiplayerPokerTable, null),
-      React.createElement(HandArea, { socket: this.socket })
-    );
-  }
-}
-
 module.exports = MultiplayerPoker;
 
-},{"./HandArea.js":8,"./MultiplayerPokerTable":10,"react":81,"socket.io-client":82}],10:[function(require,module,exports){
+},{"./Hand.js":7,"./MultiplayerPokerTable":9,"react":80,"socket.io-client":81}],9:[function(require,module,exports){
 const React = require('react');
-const Card = require('./Card.js');
+const Hand = require('./Hand.js');
 
 class MultiplayerPokerTable extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return React.createElement(
       'div',
       { className: 'multiplayer-poker-table' },
-      React.createElement(
+      this.props.players[0] ? React.createElement(
         'div',
         { className: 'player-one' },
-        React.createElement(Card, { card: { suit: 'd', rank: 1 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 1 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 1 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 1 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 1 } })
-      ),
-      React.createElement(
+        React.createElement(
+          'span',
+          null,
+          this.props.players[0].name
+        ),
+        React.createElement(Hand, { cards: this.props.players[0].hand })
+      ) : '',
+      this.props.players[1] ? React.createElement(
         'div',
         { className: 'player-two' },
-        React.createElement(Card, { card: { suit: 'd', rank: 2 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 2 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 2 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 2 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 2 } })
-      ),
-      React.createElement(
+        React.createElement(
+          'span',
+          null,
+          this.props.players[1].name
+        ),
+        React.createElement(Hand, { cards: this.props.players[1].hand })
+      ) : '',
+      this.props.players[2] ? React.createElement(
         'div',
         { className: 'player-three' },
-        React.createElement(Card, { card: { suit: 'd', rank: 3 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 3 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 3 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 3 } }),
-        React.createElement(Card, { card: { suit: 'd', rank: 3 } })
-      )
+        React.createElement(
+          'span',
+          null,
+          this.props.players[1].name
+        ),
+        React.createElement(Hand, { cards: this.props.players[2].hand })
+      ) : ''
     );
   }
 }
 
 module.exports = MultiplayerPokerTable;
 
-},{"./Card.js":6,"react":81}],11:[function(require,module,exports){
+},{"./Hand.js":7,"react":80}],10:[function(require,module,exports){
 const React = require('react');
 
 class ResultRow extends React.Component {
@@ -409,7 +403,7 @@ class ResultRow extends React.Component {
 
 module.exports = ResultRow;
 
-},{"react":81}],12:[function(require,module,exports){
+},{"react":80}],11:[function(require,module,exports){
 const React = require('react');
 const ResultRow = require('./ResultRow.js');
 
@@ -435,29 +429,36 @@ class ResultTable extends React.Component {
 
 module.exports = ResultTable;
 
-},{"./ResultRow.js":11,"react":81}],13:[function(require,module,exports){
+},{"./ResultRow.js":10,"react":80}],12:[function(require,module,exports){
 const React = require('react');
 const ResultTable = require('./ResultTable.js');
-const HandArea = require('./HandArea.js');
+const Hand = require('./Hand.js');
 const socket = require('socket.io-client');
 
 class SoloPoker extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { winninghand: -1 };
+    this.deal = this.deal.bind(this);
+    this.change = this.change.bind(this);
+    this.handleCardSelect = this.handleCardSelect.bind(this);
+    this.state = { changeDisabled: true, dealDisabled: false, cards: [], winninghand: -1 };
   }
 
   componentWillMount() {
-    this.socket = socket.connect('/game');
+    this.socket = socket.connect('/solo-poker-game');
   }
 
   componentDidMount() {
     this.socket.on('deal', hand => {
-      this.setState({ winninghand: -1 });
+      this.setState({ winninghand: -1, cards: hand, changeDisabled: false });
+    });
+
+    this.socket.on('change', hand => {
+      this.setState({ cards: hand });
     });
 
     this.socket.on('result', result => {
-      this.setState({ winninghand: result.value });
+      this.setState({ winninghand: result.value, dealDisabled: false });
     });
   }
 
@@ -465,19 +466,47 @@ class SoloPoker extends React.Component {
     this.socket.disconnect();
   }
 
+  deal() {
+    this.socket.emit('deal');
+    this.setState({ dealDisabled: true });
+  }
+
+  change() {
+    let cards = this.state.cards.filter(card => card.selected);
+    this.socket.emit('change', cards);
+    this.setState({ changeDisabled: true });
+  }
+
+  handleCardSelect(card) {
+    let cards = this.state.cards;
+    let ind = cards.findIndex(el => el.rank === card.rank && el.suit === card.suit);
+    cards[ind].selected = cards[ind].selected ? false : true;
+    this.setState({ cards: cards });
+  }
+
   render() {
     return React.createElement(
       'div',
       { className: 'solo-poker-area' },
       React.createElement(ResultTable, { winninghand: this.state.winninghand }),
-      React.createElement(HandArea, { socket: this.socket })
+      React.createElement(Hand, { cards: this.state.cards, handleCardSelect: this.handleCardSelect }),
+      React.createElement(
+        'button',
+        { onClick: this.deal, type: 'button', disabled: this.state.dealDisabled },
+        'New game!'
+      ),
+      React.createElement(
+        'button',
+        { onClick: this.change, type: 'button', disabled: this.state.changeDisabled },
+        'Change cards!'
+      )
     );
   }
 }
 
 module.exports = SoloPoker;
 
-},{"./HandArea.js":8,"./ResultTable.js":12,"react":81,"socket.io-client":82}],14:[function(require,module,exports){
+},{"./Hand.js":7,"./ResultTable.js":11,"react":80,"socket.io-client":81}],13:[function(require,module,exports){
 const React = require('react');
 
 class Header extends React.Component {
@@ -534,7 +563,7 @@ class Header extends React.Component {
 
 module.exports = Header;
 
-},{"react":81}],15:[function(require,module,exports){
+},{"react":80}],14:[function(require,module,exports){
 const React = require('react');
 
 class RegisterPopup extends React.Component {
@@ -581,7 +610,7 @@ class RegisterPopup extends React.Component {
 
 module.exports = RegisterPopup;
 
-},{"react":81}],16:[function(require,module,exports){
+},{"react":80}],15:[function(require,module,exports){
 const React = require('react');
 const MenuRow = require('./MenuRow.js');
 
@@ -602,7 +631,7 @@ class MenuArea extends React.Component {
 
 module.exports = MenuArea;
 
-},{"./MenuRow.js":17,"react":81}],17:[function(require,module,exports){
+},{"./MenuRow.js":16,"react":80}],16:[function(require,module,exports){
 const React = require('react');
 
 class MenuRow extends React.Component {
@@ -617,7 +646,7 @@ class MenuRow extends React.Component {
 
 module.exports = MenuRow;
 
-},{"react":81}],18:[function(require,module,exports){
+},{"react":80}],17:[function(require,module,exports){
 const React = require('react');
 const ReactDOM = require('react-dom');
 
@@ -625,7 +654,7 @@ const App = require('./App.js');
 
 ReactDOM.render(React.createElement(App, null), document.getElementById('root'));
 
-},{"./App.js":1,"react":81,"react-dom":78}],19:[function(require,module,exports){
+},{"./App.js":1,"react":80,"react-dom":77}],18:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -655,7 +684,7 @@ function after(count, callback, err_cb) {
 
 function noop() {}
 
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 /**
  * An abstraction for slicing an arraybuffer even when
  * ArrayBuffer.prototype.slice is not supported
@@ -686,7 +715,7 @@ module.exports = function(arraybuffer, start, end) {
   return result.buffer;
 };
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 /**
  * Expose `Backoff`.
@@ -773,7 +802,7 @@ Backoff.prototype.setJitter = function(jitter){
 };
 
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -842,7 +871,7 @@ Backoff.prototype.setJitter = function(jitter){
   };
 })();
 
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -942,9 +971,9 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 
-},{}],25:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -969,7 +998,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -1134,7 +1163,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -1142,7 +1171,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 (function (process){
 /**
  * This is the web browser implementation of `debug()`.
@@ -1331,7 +1360,7 @@ function localstorage() {
 }
 
 }).call(this,require('_process'))
-},{"./debug":29,"_process":70}],29:[function(require,module,exports){
+},{"./debug":28,"_process":69}],28:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -1535,11 +1564,11 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":65}],30:[function(require,module,exports){
+},{"ms":64}],29:[function(require,module,exports){
 
 module.exports = require('./lib/index');
 
-},{"./lib/index":31}],31:[function(require,module,exports){
+},{"./lib/index":30}],30:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -1551,7 +1580,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":32,"engine.io-parser":40}],32:[function(require,module,exports){
+},{"./socket":31,"engine.io-parser":39}],31:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -2299,7 +2328,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":33,"./transports/index":34,"component-emitter":26,"debug":28,"engine.io-parser":40,"indexof":63,"parsejson":67,"parseqs":68,"parseuri":69}],33:[function(require,module,exports){
+},{"./transport":32,"./transports/index":33,"component-emitter":25,"debug":27,"engine.io-parser":39,"indexof":62,"parsejson":66,"parseqs":67,"parseuri":68}],32:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -2458,7 +2487,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":26,"engine.io-parser":40}],34:[function(require,module,exports){
+},{"component-emitter":25,"engine.io-parser":39}],33:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -2515,7 +2544,7 @@ function polling (opts) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":35,"./polling-xhr":36,"./websocket":38,"xmlhttprequest-ssl":39}],35:[function(require,module,exports){
+},{"./polling-jsonp":34,"./polling-xhr":35,"./websocket":37,"xmlhttprequest-ssl":38}],34:[function(require,module,exports){
 (function (global){
 
 /**
@@ -2750,7 +2779,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":37,"component-inherit":27}],36:[function(require,module,exports){
+},{"./polling":36,"component-inherit":26}],35:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -3167,7 +3196,7 @@ function unloadHandler () {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":37,"component-emitter":26,"component-inherit":27,"debug":28,"xmlhttprequest-ssl":39}],37:[function(require,module,exports){
+},{"./polling":36,"component-emitter":25,"component-inherit":26,"debug":27,"xmlhttprequest-ssl":38}],36:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3414,7 +3443,7 @@ Polling.prototype.uri = function () {
   return schema + '://' + (ipv6 ? '[' + this.hostname + ']' : this.hostname) + port + this.path + query;
 };
 
-},{"../transport":33,"component-inherit":27,"debug":28,"engine.io-parser":40,"parseqs":68,"xmlhttprequest-ssl":39,"yeast":91}],38:[function(require,module,exports){
+},{"../transport":32,"component-inherit":26,"debug":27,"engine.io-parser":39,"parseqs":67,"xmlhttprequest-ssl":38,"yeast":90}],37:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -3704,7 +3733,7 @@ WS.prototype.check = function () {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../transport":33,"component-inherit":27,"debug":28,"engine.io-parser":40,"parseqs":68,"ws":24,"yeast":91}],39:[function(require,module,exports){
+},{"../transport":32,"component-inherit":26,"debug":27,"engine.io-parser":39,"parseqs":67,"ws":23,"yeast":90}],38:[function(require,module,exports){
 (function (global){
 // browser shim for xmlhttprequest module
 
@@ -3745,7 +3774,7 @@ module.exports = function (opts) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"has-cors":62}],40:[function(require,module,exports){
+},{"has-cors":61}],39:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -4355,7 +4384,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":41,"./utf8":42,"after":19,"arraybuffer.slice":20,"base64-arraybuffer":22,"blob":23,"has-binary2":61}],41:[function(require,module,exports){
+},{"./keys":40,"./utf8":41,"after":18,"arraybuffer.slice":19,"base64-arraybuffer":21,"blob":22,"has-binary2":60}],40:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -4376,7 +4405,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],42:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/utf8js v2.1.2 by @mathias */
 ;(function(root) {
@@ -4635,7 +4664,7 @@ module.exports = Object.keys || function keys (obj){
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],43:[function(require,module,exports){
+},{}],42:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -4712,7 +4741,7 @@ var EventListener = {
 
 module.exports = EventListener;
 }).call(this,require('_process'))
-},{"./emptyFunction":48,"_process":70}],44:[function(require,module,exports){
+},{"./emptyFunction":47,"_process":69}],43:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -4746,7 +4775,7 @@ var ExecutionEnvironment = {
 };
 
 module.exports = ExecutionEnvironment;
-},{}],45:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 "use strict";
 
 /**
@@ -4776,7 +4805,7 @@ function camelize(string) {
 }
 
 module.exports = camelize;
-},{}],46:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -4814,7 +4843,7 @@ function camelizeStyleName(string) {
 }
 
 module.exports = camelizeStyleName;
-},{"./camelize":45}],47:[function(require,module,exports){
+},{"./camelize":44}],46:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4852,7 +4881,7 @@ function containsNode(outerNode, innerNode) {
 }
 
 module.exports = containsNode;
-},{"./isTextNode":56}],48:[function(require,module,exports){
+},{"./isTextNode":55}],47:[function(require,module,exports){
 "use strict";
 
 /**
@@ -4889,7 +4918,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],49:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -4909,7 +4938,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = emptyObject;
 }).call(this,require('_process'))
-},{"_process":70}],50:[function(require,module,exports){
+},{"_process":69}],49:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -4934,7 +4963,7 @@ function focusNode(node) {
 }
 
 module.exports = focusNode;
-},{}],51:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 'use strict';
 
 /**
@@ -4971,7 +5000,7 @@ function getActiveElement(doc) /*?DOMElement*/{
 }
 
 module.exports = getActiveElement;
-},{}],52:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 /**
@@ -5002,7 +5031,7 @@ function hyphenate(string) {
 }
 
 module.exports = hyphenate;
-},{}],53:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -5039,7 +5068,7 @@ function hyphenateStyleName(string) {
 }
 
 module.exports = hyphenateStyleName;
-},{"./hyphenate":52}],54:[function(require,module,exports){
+},{"./hyphenate":51}],53:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -5095,7 +5124,7 @@ function invariant(condition, format, a, b, c, d, e, f) {
 
 module.exports = invariant;
 }).call(this,require('_process'))
-},{"_process":70}],55:[function(require,module,exports){
+},{"_process":69}],54:[function(require,module,exports){
 'use strict';
 
 /**
@@ -5118,7 +5147,7 @@ function isNode(object) {
 }
 
 module.exports = isNode;
-},{}],56:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 'use strict';
 
 /**
@@ -5141,7 +5170,7 @@ function isTextNode(object) {
 }
 
 module.exports = isTextNode;
-},{"./isNode":55}],57:[function(require,module,exports){
+},{"./isNode":54}],56:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -5162,7 +5191,7 @@ if (ExecutionEnvironment.canUseDOM) {
 }
 
 module.exports = performance || {};
-},{"./ExecutionEnvironment":44}],58:[function(require,module,exports){
+},{"./ExecutionEnvironment":43}],57:[function(require,module,exports){
 'use strict';
 
 /**
@@ -5194,7 +5223,7 @@ if (performance.now) {
 }
 
 module.exports = performanceNow;
-},{"./performance":57}],59:[function(require,module,exports){
+},{"./performance":56}],58:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -5260,7 +5289,7 @@ function shallowEqual(objA, objB) {
 }
 
 module.exports = shallowEqual;
-},{}],60:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -5325,7 +5354,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = warning;
 }).call(this,require('_process'))
-},{"./emptyFunction":48,"_process":70}],61:[function(require,module,exports){
+},{"./emptyFunction":47,"_process":69}],60:[function(require,module,exports){
 (function (global){
 /* global Blob File */
 
@@ -5391,7 +5420,7 @@ function hasBinary (obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":64}],62:[function(require,module,exports){
+},{"isarray":63}],61:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -5410,7 +5439,7 @@ try {
   module.exports = false;
 }
 
-},{}],63:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -5421,14 +5450,14 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],64:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],65:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -5582,7 +5611,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],66:[function(require,module,exports){
+},{}],65:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -5674,7 +5703,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],67:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -5709,7 +5738,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],68:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -5748,7 +5777,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],69:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -5789,7 +5818,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],70:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -5975,7 +6004,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],71:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -6038,7 +6067,7 @@ function checkPropTypes(typeSpecs, values, location, componentName, getStack) {
 module.exports = checkPropTypes;
 
 }).call(this,require('_process'))
-},{"./lib/ReactPropTypesSecret":75,"_process":70,"fbjs/lib/invariant":54,"fbjs/lib/warning":60}],72:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":74,"_process":69,"fbjs/lib/invariant":53,"fbjs/lib/warning":59}],71:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -6098,7 +6127,7 @@ module.exports = function() {
   return ReactPropTypes;
 };
 
-},{"./lib/ReactPropTypesSecret":75,"fbjs/lib/emptyFunction":48,"fbjs/lib/invariant":54}],73:[function(require,module,exports){
+},{"./lib/ReactPropTypesSecret":74,"fbjs/lib/emptyFunction":47,"fbjs/lib/invariant":53}],72:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -6644,7 +6673,7 @@ module.exports = function(isValidElement, throwOnDirectAccess) {
 };
 
 }).call(this,require('_process'))
-},{"./checkPropTypes":71,"./lib/ReactPropTypesSecret":75,"_process":70,"fbjs/lib/emptyFunction":48,"fbjs/lib/invariant":54,"fbjs/lib/warning":60,"object-assign":66}],74:[function(require,module,exports){
+},{"./checkPropTypes":70,"./lib/ReactPropTypesSecret":74,"_process":69,"fbjs/lib/emptyFunction":47,"fbjs/lib/invariant":53,"fbjs/lib/warning":59,"object-assign":65}],73:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -6676,7 +6705,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./factoryWithThrowingShims":72,"./factoryWithTypeCheckers":73,"_process":70}],75:[function(require,module,exports){
+},{"./factoryWithThrowingShims":71,"./factoryWithTypeCheckers":72,"_process":69}],74:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -6690,7 +6719,7 @@ var ReactPropTypesSecret = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED';
 
 module.exports = ReactPropTypesSecret;
 
-},{}],76:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 (function (process){
 /** @license React v16.0.0
  * react-dom.development.js
@@ -23915,7 +23944,7 @@ module.exports = ReactDOMFiberEntry;
 }
 
 }).call(this,require('_process'))
-},{"_process":70,"fbjs/lib/EventListener":43,"fbjs/lib/ExecutionEnvironment":44,"fbjs/lib/camelizeStyleName":46,"fbjs/lib/containsNode":47,"fbjs/lib/emptyFunction":48,"fbjs/lib/emptyObject":49,"fbjs/lib/focusNode":50,"fbjs/lib/getActiveElement":51,"fbjs/lib/hyphenateStyleName":53,"fbjs/lib/invariant":54,"fbjs/lib/performanceNow":58,"fbjs/lib/shallowEqual":59,"fbjs/lib/warning":60,"object-assign":66,"prop-types":74,"prop-types/checkPropTypes":71,"react":81}],77:[function(require,module,exports){
+},{"_process":69,"fbjs/lib/EventListener":42,"fbjs/lib/ExecutionEnvironment":43,"fbjs/lib/camelizeStyleName":45,"fbjs/lib/containsNode":46,"fbjs/lib/emptyFunction":47,"fbjs/lib/emptyObject":48,"fbjs/lib/focusNode":49,"fbjs/lib/getActiveElement":50,"fbjs/lib/hyphenateStyleName":52,"fbjs/lib/invariant":53,"fbjs/lib/performanceNow":57,"fbjs/lib/shallowEqual":58,"fbjs/lib/warning":59,"object-assign":65,"prop-types":73,"prop-types/checkPropTypes":70,"react":80}],76:[function(require,module,exports){
 /*
  React v16.0.0
  react-dom.production.min.js
@@ -24173,7 +24202,7 @@ function ck(a,b,c,d,e){ak(c)?void 0:w("200");var f=c._reactRootContainer;if(f)Xj
 var ek={createPortal:dk,hydrate:function(a,b,c){return ck(null,a,b,!0,c)},render:function(a,b,c){return ck(null,a,b,!1,c)},unstable_renderSubtreeIntoContainer:function(a,b,c,d){null!=a&&Pa.has(a)?void 0:w("38");return ck(a,b,c,!1,d)},unmountComponentAtNode:function(a){ak(a)?void 0:w("40");return a._reactRootContainer?(Xj.unbatchedUpdates(function(){ck(null,null,a,!1,function(){a._reactRootContainer=null})}),!0):!1},findDOMNode:Dh,unstable_createPortal:dk,unstable_batchedUpdates:sb.batchedUpdates,
 unstable_deferredUpdates:Xj.deferredUpdates,flushSync:Xj.flushSync,__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{EventPluginHub:Jb,EventPluginRegistry:sa,EventPropagators:Th,ReactControlledComponent:nb,ReactDOMComponentTree:G,ReactDOMEventListener:L}};Cj({findFiberByHostInstance:G.getClosestInstanceFromNode,findHostInstanceByFiber:Xj.findHostInstance,bundleType:0,version:"16.0.0",rendererPackageName:"react-dom"});module.exports=ek;
 
-},{"fbjs/lib/EventListener":43,"fbjs/lib/ExecutionEnvironment":44,"fbjs/lib/containsNode":47,"fbjs/lib/emptyFunction":48,"fbjs/lib/emptyObject":49,"fbjs/lib/focusNode":50,"fbjs/lib/getActiveElement":51,"fbjs/lib/invariant":54,"fbjs/lib/shallowEqual":59,"object-assign":66,"react":81}],78:[function(require,module,exports){
+},{"fbjs/lib/EventListener":42,"fbjs/lib/ExecutionEnvironment":43,"fbjs/lib/containsNode":46,"fbjs/lib/emptyFunction":47,"fbjs/lib/emptyObject":48,"fbjs/lib/focusNode":49,"fbjs/lib/getActiveElement":50,"fbjs/lib/invariant":53,"fbjs/lib/shallowEqual":58,"object-assign":65,"react":80}],77:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -24215,7 +24244,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react-dom.development.js":76,"./cjs/react-dom.production.min.js":77,"_process":70}],79:[function(require,module,exports){
+},{"./cjs/react-dom.development.js":75,"./cjs/react-dom.production.min.js":76,"_process":69}],78:[function(require,module,exports){
 (function (process){
 /** @license React v16.0.0
  * react.development.js
@@ -25917,7 +25946,7 @@ module.exports = ReactEntry;
 }
 
 }).call(this,require('_process'))
-},{"_process":70,"fbjs/lib/emptyFunction":48,"fbjs/lib/emptyObject":49,"fbjs/lib/invariant":54,"fbjs/lib/warning":60,"object-assign":66,"prop-types/checkPropTypes":71}],80:[function(require,module,exports){
+},{"_process":69,"fbjs/lib/emptyFunction":47,"fbjs/lib/emptyObject":48,"fbjs/lib/invariant":53,"fbjs/lib/warning":59,"object-assign":65,"prop-types/checkPropTypes":70}],79:[function(require,module,exports){
 /*
  React v16.0.0
  react.production.min.js
@@ -25942,7 +25971,7 @@ Object.keys(a).join(", ")+"}":d,""));return g}function O(a,b){return"object"===t
 function R(a,b,d,e,c){var g="";null!=d&&(g=(""+d).replace(J,"$\x26/")+"/");b=L(b,g,e,c);null==a||N(a,"",Q,b);M(b)}var S={forEach:function(a,b,d){if(null==a)return a;b=L(null,null,b,d);null==a||N(a,"",P,b);M(b)},map:function(a,b,d){if(null==a)return a;var e=[];R(a,e,null,b,d);return e},count:function(a){return null==a?0:N(a,"",r.thatReturnsNull,null)},toArray:function(a){var b=[];R(a,b,null,r.thatReturnsArgument);return b}};
 module.exports={Children:{map:S.map,forEach:S.forEach,count:S.count,toArray:S.toArray,only:function(a){G.isValidElement(a)?void 0:t("143");return a}},Component:B.Component,PureComponent:B.PureComponent,unstable_AsyncComponent:B.AsyncComponent,createElement:G.createElement,cloneElement:G.cloneElement,isValidElement:G.isValidElement,createFactory:G.createFactory,version:"16.0.0",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED:{ReactCurrentOwner:C,assign:f}};
 
-},{"fbjs/lib/emptyFunction":48,"fbjs/lib/emptyObject":49,"fbjs/lib/invariant":54,"object-assign":66}],81:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":47,"fbjs/lib/emptyObject":48,"fbjs/lib/invariant":53,"object-assign":65}],80:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -25953,7 +25982,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 }).call(this,require('_process'))
-},{"./cjs/react.development.js":79,"./cjs/react.production.min.js":80,"_process":70}],82:[function(require,module,exports){
+},{"./cjs/react.development.js":78,"./cjs/react.production.min.js":79,"_process":69}],81:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -26049,7 +26078,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":83,"./socket":85,"./url":86,"debug":28,"socket.io-parser":88}],83:[function(require,module,exports){
+},{"./manager":82,"./socket":84,"./url":85,"debug":27,"socket.io-parser":87}],82:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -26624,7 +26653,7 @@ Manager.prototype.onreconnect = function () {
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":84,"./socket":85,"backo2":21,"component-bind":25,"component-emitter":26,"debug":28,"engine.io-client":30,"indexof":63,"socket.io-parser":88}],84:[function(require,module,exports){
+},{"./on":83,"./socket":84,"backo2":20,"component-bind":24,"component-emitter":25,"debug":27,"engine.io-client":29,"indexof":62,"socket.io-parser":87}],83:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -26650,7 +26679,7 @@ function on (obj, ev, fn) {
   };
 }
 
-},{}],85:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -27070,7 +27099,7 @@ Socket.prototype.compress = function (compress) {
   return this;
 };
 
-},{"./on":84,"component-bind":25,"component-emitter":26,"debug":28,"parseqs":68,"socket.io-parser":88,"to-array":90}],86:[function(require,module,exports){
+},{"./on":83,"component-bind":24,"component-emitter":25,"debug":27,"parseqs":67,"socket.io-parser":87,"to-array":89}],85:[function(require,module,exports){
 (function (global){
 
 /**
@@ -27149,7 +27178,7 @@ function url (uri, loc) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":28,"parseuri":69}],87:[function(require,module,exports){
+},{"debug":27,"parseuri":68}],86:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -27294,7 +27323,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":89,"isarray":64}],88:[function(require,module,exports){
+},{"./is-buffer":88,"isarray":63}],87:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -27696,7 +27725,7 @@ function error() {
   };
 }
 
-},{"./binary":87,"./is-buffer":89,"component-emitter":26,"debug":28,"has-binary2":61}],89:[function(require,module,exports){
+},{"./binary":86,"./is-buffer":88,"component-emitter":25,"debug":27,"has-binary2":60}],88:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -27713,7 +27742,7 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],90:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -27728,7 +27757,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],91:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 'use strict';
 
 var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
@@ -27798,4 +27827,4 @@ yeast.encode = encode;
 yeast.decode = decode;
 module.exports = yeast;
 
-},{}]},{},[18]);
+},{}]},{},[17]);

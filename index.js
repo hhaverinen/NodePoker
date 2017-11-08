@@ -5,7 +5,8 @@ const io = require('socket.io')();
 const path = require('path');
 const port = process.env.PORT || 3000;
 
-require('./server/game/gameserver.js').init(io);
+require('./server/game/solo-poker-server.js').init(io);
+require('./server/game/multiplayer-poker-server.js').init(io);
 require('./server/chat/chatserver.js').init(io);
 
 io.listen(server);

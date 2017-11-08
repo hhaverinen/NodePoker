@@ -121,10 +121,9 @@ const ranker = {
     }
   },
 
-  getWinningHand: function(hand1, hand2) {
-    hand1Rank = this.getBestHand(hand1);
-    hand2Rank = this.getBestHand(hand2);
-    return { winner: hand1Rank.value > hand2rank.value ? "Hand1" : "Hand2" };
+  getWinningHand: function(hands) {
+    // TODO: this doesn't take into account draws
+    return hands.sort((a, b) => this.getBestHand(b.hand).value - this.getBestHand(a.hand).value)[0];
   }
 
 }

@@ -1,34 +1,27 @@
 const React = require('react');
-const Card = require('./Card.js');
+const Hand = require('./Hand.js');
 
 class MultiplayerPokerTable extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return <div className="multiplayer-poker-table">
-            <div className="player-one">
-              <Card card={{suit: 'd', rank: 1}}/>
-              <Card card={{suit: 'd', rank: 1}}/>
-              <Card card={{suit: 'd', rank: 1}}/>
-              <Card card={{suit: 'd', rank: 1}}/>
-              <Card card={{suit: 'd', rank: 1}}/>
-            </div>
-            <div className="player-two">
-              <Card card={{suit: 'd', rank: 2}}/>
-              <Card card={{suit: 'd', rank: 2}}/>
-              <Card card={{suit: 'd', rank: 2}}/>
-              <Card card={{suit: 'd', rank: 2}}/>
-              <Card card={{suit: 'd', rank: 2}}/>
-            </div>
-            <div className="player-three" >
-              <Card card={{suit: 'd', rank: 3}}/>
-              <Card card={{suit: 'd', rank: 3}}/>
-              <Card card={{suit: 'd', rank: 3}}/>
-              <Card card={{suit: 'd', rank: 3}}/>
-              <Card card={{suit: 'd', rank: 3}}/>
-            </div>
+            {this.props.players[0] ?
+              <div className="player-one">
+                <span>{this.props.players[0].name}</span>
+                <Hand cards={this.props.players[0].hand} />
+              </div>
+            : ''}
+            {this.props.players[1] ?
+              <div className="player-two">
+                <span>{this.props.players[1].name}</span>
+                <Hand cards={this.props.players[1].hand} />
+              </div>
+            : ''}
+            {this.props.players[2] ?
+              <div className="player-three" >
+                <span>{this.props.players[1].name}</span>
+                <Hand cards={this.props.players[2].hand} />
+              </div>
+            : ''}
            </div>;
   }
 }

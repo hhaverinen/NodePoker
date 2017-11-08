@@ -121,16 +121,16 @@ header {
   }
 }
 
-.hand-area {
+.hand {
+  margin-top: 15px;
+}
+
+.solo-poker-area {
   text-align: center;
 
   button {
     margin: 0 5px;
   }
-}
-
-.hand {
-  padding-top: 15px;
 }
 
 .multiplayer-poker-area {
@@ -142,8 +142,8 @@ header {
     .player-one {
       margin-left: -60px; // ugly way to center hand
 
-      > .card {
-        width: 10px;
+      .card {
+        width: 15px;
       }
     }
 
@@ -151,7 +151,7 @@ header {
       display: inline-block;
       margin-top: 40px;
 
-      > .card {
+      .card {
         height: 15px;
         display: block;
       }
@@ -160,7 +160,7 @@ header {
     .player-two {
       margin-right: 100px;
 
-      > .card {
+      .card {
         transform: rotate(90deg);
       }
     }
@@ -168,8 +168,28 @@ header {
     .player-three {
       margin-left: 100px;
 
-      > .card {
+      .card {
         transform: rotate(270deg);
+
+        &:nth-child(1) {
+          z-index: 5;
+        }
+
+        &:nth-child(2) {
+          z-index: 4;
+        }
+
+        &:nth-child(3) {
+          z-index: 3;
+        }
+
+        &:nth-child(4) {
+          z-index: 2;
+        }
+
+        &:nth-child(5) {
+          z-index: 1;
+        }
       }
     }
   }
@@ -215,8 +235,6 @@ header {
 }
 
 .result-table {
-  text-align: center;
-
   > .result-row {
     padding: 3px;
 

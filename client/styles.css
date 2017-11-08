@@ -118,14 +118,14 @@ header .chat-button-wrapper .chat-button.chat-open > .chat-icon,
 header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
   transform: rotate(45deg);
 }
-.hand-area {
+.hand {
+  margin-top: 15px;
+}
+.solo-poker-area {
   text-align: center;
 }
-.hand-area button {
+.solo-poker-area button {
   margin: 0 5px;
-}
-.hand {
-  padding-top: 15px;
 }
 .multiplayer-poker-area {
   text-align: center;
@@ -136,30 +136,45 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 .multiplayer-poker-area .multiplayer-poker-table .player-one {
   margin-left: -60px;
 }
-.multiplayer-poker-area .multiplayer-poker-table .player-one > .card {
-  width: 10px;
+.multiplayer-poker-area .multiplayer-poker-table .player-one .card {
+  width: 15px;
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-two,
 .multiplayer-poker-area .multiplayer-poker-table .player-three {
   display: inline-block;
   margin-top: 40px;
 }
-.multiplayer-poker-area .multiplayer-poker-table .player-two > .card,
-.multiplayer-poker-area .multiplayer-poker-table .player-three > .card {
+.multiplayer-poker-area .multiplayer-poker-table .player-two .card,
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card {
   height: 15px;
   display: block;
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-two {
   margin-right: 100px;
 }
-.multiplayer-poker-area .multiplayer-poker-table .player-two > .card {
+.multiplayer-poker-area .multiplayer-poker-table .player-two .card {
   transform: rotate(90deg);
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-three {
   margin-left: 100px;
 }
-.multiplayer-poker-area .multiplayer-poker-table .player-three > .card {
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card {
   transform: rotate(270deg);
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card:nth-child(1) {
+  z-index: 5;
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card:nth-child(2) {
+  z-index: 4;
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card:nth-child(3) {
+  z-index: 3;
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card:nth-child(4) {
+  z-index: 2;
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-three .card:nth-child(5) {
+  z-index: 1;
 }
 .card {
   display: inline-block;
@@ -192,9 +207,6 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 }
 .card .card-image.flipped {
   transform: rotateY(180deg);
-}
-.result-table {
-  text-align: center;
 }
 .result-table > .result-row {
   padding: 3px;

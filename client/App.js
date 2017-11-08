@@ -5,7 +5,6 @@ const ChatArea = require('./components/chat/ChatArea.js');
 const MenuArea = require('./components/menu/MenuArea.js');
 const SoloPoker = require('./components/game/SoloPoker.js');
 const MultiplayerPoker = require('./components/game/MultiplayerPoker.js');
-const chatSocket = require('socket.io-client').connect('/chat');
 
 class App extends React.Component {
   constructor(props) {
@@ -13,10 +12,11 @@ class App extends React.Component {
     this.handleChatClick = this.handleChatClick.bind(this);
     this.handleMenuClick = this.handleMenuClick.bind(this);
     this.handleMenuItemClick = this.handleMenuItemClick.bind(this);
-    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 1 };
+    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 2 };
   }
 
   componentDidMount() {
+    // TODO: own socket for registering maybe?
     /*gameSocket.on('registered', (name) => {
       this.setState({registered: true, name: name});
     });*/
@@ -48,7 +48,7 @@ class App extends React.Component {
               <div>
                 <MenuArea menuOpen={this.state.menuOpen} handleMenuItemClick={this.handleMenuItemClick}/>
                 {game}
-                <ChatArea socket={chatSocket} name={this.state.name} chatOpen={this.state.chatOpen}/>
+                <ChatArea name={this.state.name} chatOpen={this.state.chatOpen}/>
               </div> :
               <RegisterPopup />
             }

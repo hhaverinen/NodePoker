@@ -1,6 +1,7 @@
 const React = require('react');
 const MessageArea = require('./MessageArea.js');
 const MessageBox = require('./MessageBox.js');
+const socket = require('socket.io-client');
 
 class ChatArea extends React.Component {
   constructor(props) {
@@ -9,20 +10,24 @@ class ChatArea extends React.Component {
     this.state = { messages: [] };
   }
 
+  componentWillMount() {
+    this.socket = socket.connect('/chat');
+  }
+
   componentDidMount() {
-    this.props.socket.on('message', this.onMessage = (message) => {
+    this.socket.on('message', (message) => {
       this.changeMessageState(message);
     });
   }
 
   componentWillUnmount() {
-    this.props.socket.removeListener('message', this.onMessage);
+    this.socket.disconnect();
   }
 
   onMessageSubmit(message) {
     let data = {name: this.props.name, message: message}
     this.changeMessageState(data);
-    this.props.socket.emit('message', data);
+    this.socket.emit('message', data);
   }
 
   changeMessageState(message) {
