@@ -15,7 +15,7 @@ class App extends React.Component {
     this.handleMenuItemClick = this.handleMenuItemClick.bind(this);
     this.handlePopupNameChange = this.handlePopupNameChange.bind(this);
     this.handlePopupNameSubmit = this.handlePopupNameSubmit.bind(this);
-    this.state = { registered: false, name: '', chatOpen: false, menuOpen: false, game: 2 };
+    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 2 };
   }
 
   handleMenuClick() {
@@ -61,9 +61,13 @@ class App extends React.Component {
         menuOpen: this.state.menuOpen, chatOpen: this.state.chatOpen }),
       this.state.registered ? React.createElement(
         'div',
-        null,
+        { className: 'content-container' },
         React.createElement(MenuArea, { menuOpen: this.state.menuOpen, handleMenuItemClick: this.handleMenuItemClick }),
-        game,
+        React.createElement(
+          'div',
+          { className: 'main-content' },
+          game
+        ),
         React.createElement(ChatArea, { name: this.state.name, chatOpen: this.state.chatOpen })
       ) : React.createElement(RegisterPopup, { name: this.state.name, handleSubmit: this.handlePopupNameSubmit, handleChange: this.handlePopupNameChange })
     );

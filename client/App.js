@@ -14,7 +14,7 @@ class App extends React.Component {
     this.handleMenuItemClick = this.handleMenuItemClick.bind(this);
     this.handlePopupNameChange = this.handlePopupNameChange.bind(this);
     this.handlePopupNameSubmit = this.handlePopupNameSubmit.bind(this);
-    this.state = { registered: false, name: '', chatOpen: false, menuOpen: false, game: 2 };
+    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 2 };
   }
 
   handleMenuClick() {
@@ -53,9 +53,9 @@ class App extends React.Component {
     return <div><Header handleMenuClick={this.handleMenuClick} handleChatClick={this.handleChatClick}
                   menuOpen={this.state.menuOpen} chatOpen={this.state.chatOpen}/>
             {this.state.registered ?
-              <div>
+              <div className="content-container">
                 <MenuArea menuOpen={this.state.menuOpen} handleMenuItemClick={this.handleMenuItemClick}/>
-                {game}
+                <div className="main-content">{game}</div>
                 <ChatArea name={this.state.name} chatOpen={this.state.chatOpen}/>
               </div> :
               <RegisterPopup name={this.state.name} handleSubmit={this.handlePopupNameSubmit} handleChange={this.handlePopupNameChange} />

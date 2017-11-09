@@ -9,6 +9,9 @@ header {
   text-align: center;
   height: 77px;
   line-height: 77px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 header > div {
   display: inline-block;
@@ -252,6 +255,10 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 .popup-overlay .name-form > input[type=text] {
   margin-top: 15px;
   text-align: center;
+}
+.content-container > .main-content {
+  margin: auto;
+  width: 60%;
 }
 .menu-area {
   position: fixed;
