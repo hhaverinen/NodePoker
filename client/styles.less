@@ -74,8 +74,9 @@ header {
 
     .chat-button {
       margin-top: 20px;
-      margin-left: 60px;
+      margin-right: 20px;
       width: 35px;
+      float: right;
 
       > .chat-icon {
         width: 35px;
@@ -139,8 +140,18 @@ header {
   .multiplayer-poker-table {
     margin-bottom: 50px;
 
+    .table-center {
+      display: inline-block;
+      width: 200px;
+      height: 200px;
+    }
+
     .player-one {
-      margin-left: -60px; // ugly way to center hand
+      margin-left: -60px; // TODO FIXME: ugly way to "center"
+
+      > .hand {
+        margin-top: 0;
+      }
 
       .card {
         width: 15px;
@@ -149,7 +160,11 @@ header {
 
     .player-two, .player-three {
       display: inline-block;
-      margin-top: 40px;
+      vertical-align: top;
+
+      > .hand {
+        margin-top: 30px;
+      }
 
       .card {
         height: 15px;
@@ -158,7 +173,6 @@ header {
     }
 
     .player-two {
-      margin-right: 100px;
 
       .card {
         transform: rotate(90deg);
@@ -166,7 +180,6 @@ header {
     }
 
     .player-three {
-      margin-left: 100px;
 
       .card {
         transform: rotate(270deg);
@@ -192,6 +205,12 @@ header {
         }
       }
     }
+  }
+}
+
+.own-hand-area {
+  .player-name {
+    padding: 10px;
   }
 }
 
@@ -278,13 +297,14 @@ header {
 }
 
 .menu-area {
+  @right-border-width: 2px;
   position: fixed;
   left: 0;
   top: @header-height;
   bottom: 0;
   width: 20%;
   background-color: @gray-background-color;
-  border-right: 2px solid @gray-background-color;
+  border-right: @right-border-width solid @gray-background-color;
   z-index: 100; // to ensure that all other elements will stay behind
 
   &.menu-open {
@@ -292,7 +312,7 @@ header {
   }
 
   &.menu-closed {
-    left: -20%;
+    left: calc(~'-20% - @{right-border-width}');
     transition: 1s;
   }
 

@@ -11,16 +11,10 @@ const init = function(io) {
       console.log('user disconnected from solo poker game!')
     });
 
-/*
-    socket.on('register', (name) => {
-      players[socket.id]['name'] = name;
-      socket.emit('registered', name);
-    });
-*/
-    socket.on('deal', () => {
+    socket.on('start', () => {
       deck = new Deck(true); // true shuffles the deck
       hand = deck.deal(5);
-      socket.emit('deal', hand);
+      socket.emit('start', hand);
     });
 
     socket.on('change', (cards) => {

@@ -32,7 +32,7 @@ class ChatArea extends React.Component {
 
   changeMessageState(message) {
     message['id'] = this.state.messages.length; // add id based on amount of messages
-    this.setState({ messages: this.state.messages.concat([message])});
+    this.setState({ messages: [...this.state.messages, message]});
   }
 
   isOpen() {

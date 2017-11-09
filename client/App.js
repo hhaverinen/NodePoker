@@ -9,17 +9,12 @@ const MultiplayerPoker = require('./components/game/MultiplayerPoker.js');
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.handleChatClick = this.handleChatClick.bind(this);
     this.handleMenuClick = this.handleMenuClick.bind(this);
+    this.handleChatClick = this.handleChatClick.bind(this);
     this.handleMenuItemClick = this.handleMenuItemClick.bind(this);
-    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 2 };
-  }
-
-  componentDidMount() {
-    // TODO: own socket for registering maybe?
-    /*gameSocket.on('registered', (name) => {
-      this.setState({registered: true, name: name});
-    });*/
+    this.handlePopupNameChange = this.handlePopupNameChange.bind(this);
+    this.handlePopupNameSubmit = this.handlePopupNameSubmit.bind(this);
+    this.state = { registered: false, name: '', chatOpen: false, menuOpen: false, game: 2 };
   }
 
   handleMenuClick() {
@@ -34,11 +29,24 @@ class App extends React.Component {
     this.setState({game: gameId});
   }
 
+  handlePopupNameChange(event) {
+    if(event.target.value.length <= 10) {
+      this.setState({name : event.target.value});
+    }
+  }
+
+  handlePopupNameSubmit(event) {
+    event.preventDefault();
+    if (this.state.name) {
+      this.setState({registered: true});
+    }
+  }
+
   render() {
     let game;
     switch (this.state.game) {
       case 1: game = <SoloPoker />; break;
-      case 2: game = <MultiplayerPoker />; break;
+      case 2: game = <MultiplayerPoker name={this.state.name}/>; break;
       default: game = <SoloPoker />; break;
     }
 
@@ -50,7 +58,7 @@ class App extends React.Component {
                 {game}
                 <ChatArea name={this.state.name} chatOpen={this.state.chatOpen}/>
               </div> :
-              <RegisterPopup />
+              <RegisterPopup name={this.state.name} handleSubmit={this.handlePopupNameSubmit} handleChange={this.handlePopupNameChange} />
             }
            </div>;
   }

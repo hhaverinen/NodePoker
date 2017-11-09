@@ -17,7 +17,7 @@ class SoloPoker extends React.Component {
   }
 
   componentDidMount() {
-    this.socket.on('deal', (hand) => {
+    this.socket.on('start', (hand) => {
       this.setState({winninghand: -1, cards: hand, changeDisabled: false});
     });
 
@@ -35,7 +35,7 @@ class SoloPoker extends React.Component {
   }
 
   deal() {
-    this.socket.emit('deal');
+    this.socket.emit('start');
     this.setState({dealDisabled: true});
   }
 

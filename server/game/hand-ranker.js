@@ -123,7 +123,10 @@ const ranker = {
 
   getWinningHand: function(hands) {
     // TODO: this doesn't take into account draws
-    return hands.sort((a, b) => this.getBestHand(b.hand).value - this.getBestHand(a.hand).value)[0];
+    return (hands.map(pl => {
+      pl.ranking = this.getBestHand(pl.hand); // add ranking to objects
+      return pl;
+    })).sort((a, b) => b.ranking.value - a.ranking.value)[0]; // sort by ranking value and return first one
   }
 
 }

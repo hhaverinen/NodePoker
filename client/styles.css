@@ -72,8 +72,9 @@ header .menu-button-wrapper .menu-button.menu-open > div.bar3 {
 header .chat-button-wrapper .chat-button,
 header .menu-button-wrapper .chat-button {
   margin-top: 20px;
-  margin-left: 60px;
+  margin-right: 20px;
   width: 35px;
+  float: right;
 }
 header .chat-button-wrapper .chat-button > .chat-icon,
 header .menu-button-wrapper .chat-button > .chat-icon {
@@ -133,8 +134,16 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 .multiplayer-poker-area .multiplayer-poker-table {
   margin-bottom: 50px;
 }
+.multiplayer-poker-area .multiplayer-poker-table .table-center {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+}
 .multiplayer-poker-area .multiplayer-poker-table .player-one {
   margin-left: -60px;
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-one > .hand {
+  margin-top: 0;
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-one .card {
   width: 15px;
@@ -142,21 +151,19 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 .multiplayer-poker-area .multiplayer-poker-table .player-two,
 .multiplayer-poker-area .multiplayer-poker-table .player-three {
   display: inline-block;
-  margin-top: 40px;
+  vertical-align: top;
+}
+.multiplayer-poker-area .multiplayer-poker-table .player-two > .hand,
+.multiplayer-poker-area .multiplayer-poker-table .player-three > .hand {
+  margin-top: 30px;
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-two .card,
 .multiplayer-poker-area .multiplayer-poker-table .player-three .card {
   height: 15px;
   display: block;
 }
-.multiplayer-poker-area .multiplayer-poker-table .player-two {
-  margin-right: 100px;
-}
 .multiplayer-poker-area .multiplayer-poker-table .player-two .card {
   transform: rotate(90deg);
-}
-.multiplayer-poker-area .multiplayer-poker-table .player-three {
-  margin-left: 100px;
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-three .card {
   transform: rotate(270deg);
@@ -175,6 +182,9 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
 }
 .multiplayer-poker-area .multiplayer-poker-table .player-three .card:nth-child(5) {
   z-index: 1;
+}
+.own-hand-area .player-name {
+  padding: 10px;
 }
 .card {
   display: inline-block;
@@ -257,7 +267,7 @@ header .menu-button-wrapper .chat-button.chat-open > .chat-icon {
   transition: 1s;
 }
 .menu-area.menu-closed {
-  left: -20%;
+  left: calc(-20% - 2px);
   transition: 1s;
 }
 .menu-area > .menu-row {

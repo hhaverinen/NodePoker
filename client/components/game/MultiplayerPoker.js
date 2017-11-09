@@ -9,39 +9,45 @@ class MultiplayerPoker extends React.Component {
     this.deal = this.deal.bind(this);
     this.change = this.change.bind(this);
     this.handleCardSelect = this.handleCardSelect.bind(this);
-    let mockCards =  [{ suit: 'c', rank: 3 },{ suit: 'h', rank: 10 },{ suit: 'd', rank: 5 },{ suit: 'h', rank: 5 },{ suit: 'c', rank: 8 }];
     this.state = {
       dealDisabled: false,
       changeDisabled : true,
       cards: [],
       otherPlayers: [],
-      waiting: ''
+      message: '',
+      winner: ''
     };
   }
 
   componentWillMount() {
-    this.socket = socket.connect('/multiplayer-poker-game');
+    this.socket = socket.connect('/multiplayer-poker-game', {query: `name=${this.props.name}`});
   }
 
   componentDidMount() {
-    this.socket.on('deal', (hand) => {
-      this.setState({cards: hand, changeDisabled: false, waiting: '', playerOneCards: [], playerTwoCards: [], playerThreeCards: []});
+    this.socket.on('start', (hand) => {
+      this.setState({
+        cards: hand,
+        changeDisabled: false,
+        dealDisabled: true,
+        message: '',
+        winner: ''
+      });
     });
 
     this.socket.on('change', (hand) => {
       this.setState({cards: hand});
     });
 
-    this.socket.on('result', () => {
-      this.setState({dealDisabled: false, waiting: ''});
+    this.socket.on('result', (winner) => {
+      this.setState({dealDisabled: false, changeDisabled: true, message: '', winner: winner});
     });
 
     this.socket.on('updateplayers', players => {
       this.setState({otherPlayers: players});
     });
 
-    this.socket.on('waiting', msg => {
-      this.setState({waiting: msg})
+    this.socket.on('message', msg => {
+      this.setState({message: msg})
     })
   }
 
@@ -50,7 +56,7 @@ class MultiplayerPoker extends React.Component {
   }
 
   deal() {
-    this.socket.emit('deal');
+    this.socket.emit('start');
     this.setState({dealDisabled: true});
   }
 
@@ -70,10 +76,14 @@ class MultiplayerPoker extends React.Component {
   render() {
     return <div className="multiplayer-poker-area">
             <MultiplayerPokerTable players={this.state.otherPlayers} />
-            <div>{this.state.waiting}</div>
-            <Hand cards={this.state.cards} handleCardSelect={this.handleCardSelect}/>
-            <button onClick={this.deal} type="button" disabled={this.state.dealDisabled}>Ready!</button>
-            <button onClick={this.change} type="button" disabled={this.state.changeDisabled}>Change cards!</button>
+            {this.state.winner && <div>{`Winner is ${this.state.winner.name} with ${this.state.winner.ranking.name}!`}</div>}
+            {this.state.message && <div>{this.state.message} <img src="./assets/images/ajax-loader.gif"/></div>}
+            <div className="own-hand-area">
+              <Hand cards={this.state.cards} handleCardSelect={this.handleCardSelect}/>
+              <button onClick={this.deal} type="button" disabled={this.state.dealDisabled}>Ready!</button>
+              <button onClick={this.change} type="button" disabled={this.state.changeDisabled}>Change cards!</button>
+              <div className="player-name">{`Your name: ${this.props.name}`}</div>
+            </div>
            </div>;
   }
 }

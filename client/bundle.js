@@ -10,17 +10,12 @@ const MultiplayerPoker = require('./components/game/MultiplayerPoker.js');
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.handleChatClick = this.handleChatClick.bind(this);
     this.handleMenuClick = this.handleMenuClick.bind(this);
+    this.handleChatClick = this.handleChatClick.bind(this);
     this.handleMenuItemClick = this.handleMenuItemClick.bind(this);
-    this.state = { registered: true, name: '', chatOpen: false, menuOpen: false, game: 2 };
-  }
-
-  componentDidMount() {
-    // TODO: own socket for registering maybe?
-    /*gameSocket.on('registered', (name) => {
-      this.setState({registered: true, name: name});
-    });*/
+    this.handlePopupNameChange = this.handlePopupNameChange.bind(this);
+    this.handlePopupNameSubmit = this.handlePopupNameSubmit.bind(this);
+    this.state = { registered: false, name: '', chatOpen: false, menuOpen: false, game: 2 };
   }
 
   handleMenuClick() {
@@ -35,13 +30,26 @@ class App extends React.Component {
     this.setState({ game: gameId });
   }
 
+  handlePopupNameChange(event) {
+    if (event.target.value.length <= 10) {
+      this.setState({ name: event.target.value });
+    }
+  }
+
+  handlePopupNameSubmit(event) {
+    event.preventDefault();
+    if (this.state.name) {
+      this.setState({ registered: true });
+    }
+  }
+
   render() {
     let game;
     switch (this.state.game) {
       case 1:
         game = React.createElement(SoloPoker, null);break;
       case 2:
-        game = React.createElement(MultiplayerPoker, null);break;
+        game = React.createElement(MultiplayerPoker, { name: this.state.name });break;
       default:
         game = React.createElement(SoloPoker, null);break;
     }
@@ -57,7 +65,7 @@ class App extends React.Component {
         React.createElement(MenuArea, { menuOpen: this.state.menuOpen, handleMenuItemClick: this.handleMenuItemClick }),
         game,
         React.createElement(ChatArea, { name: this.state.name, chatOpen: this.state.chatOpen })
-      ) : React.createElement(RegisterPopup, null)
+      ) : React.createElement(RegisterPopup, { name: this.state.name, handleSubmit: this.handlePopupNameSubmit, handleChange: this.handlePopupNameChange })
     );
   }
 }
@@ -99,7 +107,7 @@ class ChatArea extends React.Component {
 
   changeMessageState(message) {
     message['id'] = this.state.messages.length; // add id based on amount of messages
-    this.setState({ messages: this.state.messages.concat([message]) });
+    this.setState({ messages: [...this.state.messages, message] });
   }
 
   isOpen() {
@@ -208,7 +216,9 @@ class Card extends React.Component {
 
   render() {
     // TODO: more elegant way to determine correct image (+ jokers doesn't work currently)
-    const imgName = this.props.card.rank === 0 ? 'blank.bmp' : this.props.card.suit + (this.props.card.rank >= 10 ? this.props.card.rank : '0' + this.props.card.rank) + '.bmp';
+    // TODO: when rank == 0, then blank card should be shown. Flipped-class should be used instead for showing back of the card.
+    // when it's time to show everyone's card, then data is changed and flipped class removed so we get nice flip animation which is already implemented
+    const imgName = this.props.card.rank === 0 ? 'b1fv.bmp' : this.props.card.suit + (this.props.card.rank >= 10 ? this.props.card.rank : '0' + this.props.card.rank) + '.bmp';
 
     return React.createElement(
       'div',
@@ -254,39 +264,45 @@ class MultiplayerPoker extends React.Component {
     this.deal = this.deal.bind(this);
     this.change = this.change.bind(this);
     this.handleCardSelect = this.handleCardSelect.bind(this);
-    let mockCards = [{ suit: 'c', rank: 3 }, { suit: 'h', rank: 10 }, { suit: 'd', rank: 5 }, { suit: 'h', rank: 5 }, { suit: 'c', rank: 8 }];
     this.state = {
       dealDisabled: false,
       changeDisabled: true,
       cards: [],
       otherPlayers: [],
-      waiting: ''
+      message: '',
+      winner: ''
     };
   }
 
   componentWillMount() {
-    this.socket = socket.connect('/multiplayer-poker-game');
+    this.socket = socket.connect('/multiplayer-poker-game', { query: `name=${this.props.name}` });
   }
 
   componentDidMount() {
-    this.socket.on('deal', hand => {
-      this.setState({ cards: hand, changeDisabled: false, waiting: '', playerOneCards: [], playerTwoCards: [], playerThreeCards: [] });
+    this.socket.on('start', hand => {
+      this.setState({
+        cards: hand,
+        changeDisabled: false,
+        dealDisabled: true,
+        message: '',
+        winner: ''
+      });
     });
 
     this.socket.on('change', hand => {
       this.setState({ cards: hand });
     });
 
-    this.socket.on('result', () => {
-      this.setState({ dealDisabled: false, waiting: '' });
+    this.socket.on('result', winner => {
+      this.setState({ dealDisabled: false, changeDisabled: true, message: '', winner: winner });
     });
 
     this.socket.on('updateplayers', players => {
       this.setState({ otherPlayers: players });
     });
 
-    this.socket.on('waiting', msg => {
-      this.setState({ waiting: msg });
+    this.socket.on('message', msg => {
+      this.setState({ message: msg });
     });
   }
 
@@ -295,7 +311,7 @@ class MultiplayerPoker extends React.Component {
   }
 
   deal() {
-    this.socket.emit('deal');
+    this.socket.emit('start');
     this.setState({ dealDisabled: true });
   }
 
@@ -317,21 +333,37 @@ class MultiplayerPoker extends React.Component {
       'div',
       { className: 'multiplayer-poker-area' },
       React.createElement(MultiplayerPokerTable, { players: this.state.otherPlayers }),
-      React.createElement(
+      this.state.winner && React.createElement(
         'div',
         null,
-        this.state.waiting
+        `Winner is ${this.state.winner.name} with ${this.state.winner.ranking.name}!`
       ),
-      React.createElement(Hand, { cards: this.state.cards, handleCardSelect: this.handleCardSelect }),
-      React.createElement(
-        'button',
-        { onClick: this.deal, type: 'button', disabled: this.state.dealDisabled },
-        'Ready!'
+      this.state.message && React.createElement(
+        'div',
+        null,
+        this.state.message,
+        ' ',
+        React.createElement('img', { src: './assets/images/ajax-loader.gif' })
       ),
       React.createElement(
-        'button',
-        { onClick: this.change, type: 'button', disabled: this.state.changeDisabled },
-        'Change cards!'
+        'div',
+        { className: 'own-hand-area' },
+        React.createElement(Hand, { cards: this.state.cards, handleCardSelect: this.handleCardSelect }),
+        React.createElement(
+          'button',
+          { onClick: this.deal, type: 'button', disabled: this.state.dealDisabled },
+          'Ready!'
+        ),
+        React.createElement(
+          'button',
+          { onClick: this.change, type: 'button', disabled: this.state.changeDisabled },
+          'Change cards!'
+        ),
+        React.createElement(
+          'div',
+          { className: 'player-name' },
+          `Your name: ${this.props.name}`
+        )
       )
     );
   }
@@ -348,7 +380,7 @@ class MultiplayerPokerTable extends React.Component {
     return React.createElement(
       'div',
       { className: 'multiplayer-poker-table' },
-      this.props.players[0] ? React.createElement(
+      this.props.players[0] && React.createElement(
         'div',
         { className: 'player-one' },
         React.createElement(
@@ -357,8 +389,8 @@ class MultiplayerPokerTable extends React.Component {
           this.props.players[0].name
         ),
         React.createElement(Hand, { cards: this.props.players[0].hand })
-      ) : '',
-      this.props.players[1] ? React.createElement(
+      ),
+      this.props.players[1] && React.createElement(
         'div',
         { className: 'player-two' },
         React.createElement(
@@ -367,17 +399,18 @@ class MultiplayerPokerTable extends React.Component {
           this.props.players[1].name
         ),
         React.createElement(Hand, { cards: this.props.players[1].hand })
-      ) : '',
-      this.props.players[2] ? React.createElement(
+      ),
+      React.createElement('div', { className: 'table-center' }),
+      this.props.players[2] && React.createElement(
         'div',
         { className: 'player-three' },
         React.createElement(
           'span',
           null,
-          this.props.players[1].name
+          this.props.players[2].name
         ),
         React.createElement(Hand, { cards: this.props.players[2].hand })
-      ) : ''
+      )
     );
   }
 }
@@ -449,7 +482,7 @@ class SoloPoker extends React.Component {
   }
 
   componentDidMount() {
-    this.socket.on('deal', hand => {
+    this.socket.on('start', hand => {
       this.setState({ winninghand: -1, cards: hand, changeDisabled: false });
     });
 
@@ -467,7 +500,7 @@ class SoloPoker extends React.Component {
   }
 
   deal() {
-    this.socket.emit('deal');
+    this.socket.emit('start');
     this.setState({ dealDisabled: true });
   }
 
@@ -567,42 +600,24 @@ module.exports = Header;
 const React = require('react');
 
 class RegisterPopup extends React.Component {
-  constructor(props) {
-    super(props);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.state = { name: '' };
-  }
-
-  handleChange(event) {
-    this.setState({ name: event.target.value });
-  }
-
-  handleSubmit(event) {
-    event.preventDefault();
-    if (this.state.name) {
-      this.props.socket.emit('register', this.state.name);
-    }
-  }
-
   componentDidMount() {
     document.getElementById("name-field").focus();
   }
 
   render() {
     return React.createElement(
-      'div',
-      { className: 'popup-overlay' },
+      "div",
+      { className: "popup-overlay" },
       React.createElement(
-        'form',
-        { onSubmit: this.handleSubmit, className: 'name-form' },
+        "form",
+        { onSubmit: this.props.handleSubmit, className: "name-form" },
         React.createElement(
-          'div',
+          "div",
           null,
-          'Welcome to NodePoker site! Please fill your name below and you are ready to play!'
+          "Welcome to NodePoker site! Please fill your name below and you are ready to play! (Max length 10 characters)"
         ),
-        React.createElement('input', { id: 'name-field', type: 'text', placeholder: 'Donald Duck', value: this.state.name, onChange: this.handleChange }),
-        React.createElement('input', { type: 'submit', value: 'Start playing!' })
+        React.createElement("input", { id: "name-field", type: "text", placeholder: "Donald Duck", value: this.props.name, onChange: this.props.handleChange }),
+        React.createElement("input", { type: "submit", value: "Start playing!" })
       )
     );
   }
